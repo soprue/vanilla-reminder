@@ -1,6 +1,6 @@
-import { Component, ComponentProps } from '../components/Component';
+import { Component, ComponentProps } from '../Component';
 
-export default class MyComponent extends Component {
+export default class MainPage extends Component {
   constructor(props: ComponentProps) {
     super(props);
     this.state = { count: 0 };

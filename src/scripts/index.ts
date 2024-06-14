@@ -1,9 +1,9 @@
-import MyComponent from '../components/MyComponent';
+import MainPage from '../pages/Main';
 
 document.addEventListener('DOMContentLoaded', function () {
   const root = document.getElementById('root');
   if (root) {
-    const myComponent = new MyComponent({ someProp: 'value' });
-    myComponent.render();
+    const mainPage = new MainPage({ someProp: 'value' });
+    mainPage.render();
   }
 });
