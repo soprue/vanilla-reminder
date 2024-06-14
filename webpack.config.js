@@ -1,8 +1,10 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+import path from 'path';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-module.exports = {
-  entry: './src/scripts/app.ts',
+const __dirname = path.resolve();
+
+export default {
+  entry: '/src/scripts/index.ts',
   target: 'electron-renderer',
   mode: 'development',
   module: {
@@ -24,6 +26,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -35,6 +38,7 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      publicPath: '/',
     },
     compress: true,
     port: 9000,
