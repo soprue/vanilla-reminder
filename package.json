@@ -5,7 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "tsc && webpack"
+    "build": "tsc && webpack",
+    "dev": "concurrently \"webpack serve\" \"electron .\""
   },
   "keywords": [],
   "author": "",
@@ -13,7 +14,10 @@
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/node": "^20.14.2",
+    "concurrently": "^8.2.2",
     "electron": "^31.0.0",
+    "electron-is-dev": "^3.0.1",
+    "electron-reload": "^2.0.0-alpha.1",
     "html-webpack-plugin": "^5.6.0",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",

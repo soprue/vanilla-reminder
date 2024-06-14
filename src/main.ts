@@ -1,6 +1,21 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const url = require('url');
+import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
+import * as url from 'url';
+import * as isDev from 'electron-is-dev';
+
+if (isDev) {
+  const electronReload = require('electron-reload');
+  electronReload(__dirname, {
+    electron: path.join(
+      __dirname,
+      '..',
+      '..',
+      'node_modules',
+      '.bin',
+      'electron',
+    ),
+  });
+}
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -12,13 +27,17 @@ function createWindow() {
     },
   });
 
-  const startUrl = url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true,
-  });
-
-  mainWindow.loadURL(startUrl);
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:9000');
+  } else {
+    mainWindow.loadURL(
+      url.format({
+        pathname: path.join(__dirname, 'index.html'),
+        protocol: 'file:',
+        slashes: true,
+      }),
+    );
+  }
 }
 
 app.whenReady().then(() => {
