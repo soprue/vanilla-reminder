@@ -8,7 +8,15 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@components/*": ["./src/components/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@scripts/*": ["./src/scripts/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules"]

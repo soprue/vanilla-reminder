@@ -1,4 +1,4 @@
-import MainPage from '../pages/Main';
+import MainPage from '@pages/Main';
 
 document.addEventListener('DOMContentLoaded', function () {
   const root = document.getElementById('root');
