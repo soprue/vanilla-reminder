@@ -6,7 +6,7 @@ const __dirname = path.resolve();
 export default {
   entry: '/src/scripts/index.ts',
   target: 'electron-renderer',
-  mode: 'development',
+  mode: 'production',
   module: {
     rules: [
       {
