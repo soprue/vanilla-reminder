@@ -1,29 +1,19 @@
 import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
-import * as url from 'url';
-import * as isDev from 'electron-is-dev';
+import path from 'path';
+import url from 'url';
+import isDev from 'electron-is-dev';
 
-if (isDev) {
-  const electronReload = require('electron-reload');
-  electronReload(__dirname, {
-    electron: path.join(
-      __dirname,
-      '..',
-      '..',
-      'node_modules',
-      '.bin',
-      'electron',
-    ),
-  });
-}
+const __dirname = path.resolve();
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 400,
+    height: 700,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
+      contextIsolation: false,
+      nodeIntegration: true,
+      spellcheck: false,
     },
   });
 
