@@ -19,8 +19,12 @@ export class Component {
   }
 
   setState(newState: ComponentState) {
-    this.state = { ...this.state, ...newState };
     this.componentWillUpdate();
+    for (let key in newState) {
+      if (newState.hasOwnProperty(key)) {
+        this.state[key] = newState[key];
+      }
+    }
     this.render();
     this.componentDidUpdate();
   }
@@ -39,6 +43,11 @@ export class Component {
 
   componentDidUpdate() {
     // 컴포넌트가 업데이트 된 후 호출
+  }
+
+  componentWillUnmount() {
+    // 컴포넌트가 언마운트 되기 전에 호출
+    // 여기에 리소스 해제 로직 추가
   }
 
   render() {

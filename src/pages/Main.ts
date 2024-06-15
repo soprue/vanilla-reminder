@@ -22,13 +22,6 @@ export default class MainPage extends Component {
     console.log('MyComponent did update');
   }
 
-  setState(newState: any) {
-    this.componentWillUpdate();
-    this.state = { ...this.state, ...newState };
-    this.render();
-    this.componentDidUpdate();
-  }
-
   render() {
     const element = document.getElementById('root');
     if (element) {
