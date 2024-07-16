@@ -10,7 +10,7 @@ function createWindow() {
     width: 400,
     height: 700,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join('preload.cjs'),
       contextIsolation: false,
       nodeIntegration: true,
       spellcheck: false,
@@ -25,7 +25,7 @@ function createWindow() {
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
         slashes: true,
-      }),
+      })
     );
   }
 }
