@@ -1,25 +1,9 @@
+import { Router } from '@src/Router';
 import { Component, ComponentProps } from '../Component';
 
 export default class MainPage extends Component {
   constructor(props: ComponentProps) {
     super(props);
-    this.state = { count: 0 };
-  }
-
-  componentWillMount() {
-    console.log('MyComponent will mount');
-  }
-
-  componentDidMount() {
-    console.log('MyComponent did mount');
-  }
-
-  componentWillUpdate() {
-    console.log('MyComponent will update');
-  }
-
-  componentDidUpdate() {
-    console.log('MyComponent did update');
   }
 
   render() {
@@ -27,12 +11,14 @@ export default class MainPage extends Component {
     if (element) {
       element.innerHTML = `
         <div>
-          <p>Count: ${this.state.count}</p>
-          <button id="increment">Click me!</button>
+          <button id="go-to-login">Go to Login</button>
         </div>
       `;
-      document.getElementById('increment')?.addEventListener('click', () => {
-        this.setState({ count: this.state.count + 1 });
+      document.getElementById('go-to-login')?.addEventListener('click', () => {
+        console.log(1);
+        const router = Router.getInstance(); // 전역 Router 인스턴스 사용
+        router.navigate('/login');
+        console.log(2);
       });
     }
   }
