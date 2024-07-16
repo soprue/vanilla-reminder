@@ -1,9 +1,11 @@
+import { Router } from '@src/Router';
 import MainPage from '@pages/Main';
+import LoginPage from '@pages/Login';
 
 document.addEventListener('DOMContentLoaded', function () {
-  const root = document.getElementById('root');
-  if (root) {
-    const mainPage = new MainPage({ someProp: 'value' });
-    mainPage.render();
-  }
+  const router = Router.getInstance();
+  router.add('/', MainPage);
+  router.add('/login', LoginPage);
+
+  router.resolve();
 });
