@@ -27,7 +27,6 @@ export class Router {
   }
 
   navigate(path: string) {
-    console.log(path);
     window.history.pushState({}, path, window.location.origin + path);
     this.resolve();
   }
