@@ -1,36 +1,59 @@
-import { Router } from '@core/Router';
 import { Component, ComponentProps } from '@core/Component';
+import { Router } from '@core/Router';
+import jsx from '@core/JSX';
 
 export default class MainPage extends Component {
+  private router: Router;
+
   constructor(props: ComponentProps) {
     super(props);
-    this.state = { count: 0 };
+    this.state = { count: 1, showList: false };
+    this.router = Router.getInstance();
   }
 
-  componentDidMount() {
-    document.getElementById('root')?.addEventListener('click', (event) => {
-      const target = event.target as HTMLElement;
-      if (target.id === 'go-to-login') {
-        const router = Router.getInstance();
-        router.navigate('/login');
-      } else if (target.id === 'increment') {
-        this.setState({ count: this.state.count + 1 });
-      }
-    });
+  goToLogin() {
+    this.router.navigate('/login');
+  }
+
+  incrementCount() {
+    this.setState({ count: this.state.count + 1 });
+  }
+
+  toggleList() {
+    this.setState({ showList: !this.state.showList });
   }
 
   render() {
+    const count = this.state?.count ?? 0;
+    const showList = this.state?.showList ?? false;
+    const items = ['Apple', 'Banana', 'Cherry'];
+
+    const contents = jsx`
+      <div>
+        <button onclick="${() => this.goToLogin()}">Go to Login</button>
+        <div>
+          <p>Count: ${count}</p>
+          <button onclick="${() => this.incrementCount()}">
+            Click me!
+          </button>
+        </div>
+        <div>
+          <button onclick="${() => this.toggleList()}">
+            ${showList ? 'Hide' : 'Show'} List
+          </button>
+          ${
+            showList
+              ? jsx`<ul>${items.map((item) => `<li>${item}</li>`)}</ul>`
+              : null
+          }
+        </div>
+      </div>
+    `;
+
     const element = document.getElementById('root');
     if (element) {
-      element.innerHTML = `
-        <div>
-          <button id="go-to-login">Go to Login</button>
-        </div>
-        <div>
-          <p>Count: ${this.state.count}</p>
-          <button id="increment">Click me!</button>
-        </div>
-      `;
+      element.innerHTML = '';
+      element.appendChild(contents);
     }
   }
 }
