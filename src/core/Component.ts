@@ -18,15 +18,15 @@ export class Component {
     this.componentDidMount();
   }
 
-  setState(newState: ComponentState) {
+  setState(newState: Partial<ComponentState>, callback?: () => void) {
     this.componentWillUpdate();
-    for (let key in newState) {
-      if (newState.hasOwnProperty(key)) {
-        this.state[key] = newState[key];
-      }
-    }
-    this.render();
-    this.componentDidUpdate();
+    this.state = { ...this.state, ...newState };
+
+    Promise.resolve().then(() => {
+      this.render();
+      this.componentDidUpdate();
+      if (callback) callback();
+    });
   }
 
   componentWillMount() {
