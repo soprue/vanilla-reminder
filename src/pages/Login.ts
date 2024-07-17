@@ -1,4 +1,4 @@
-import { Component } from '@src/Component';
+import { Component } from '@core/Component';
 
 export default class LoginPage extends Component {
   constructor(props: any) {

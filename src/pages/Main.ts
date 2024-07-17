@@ -1,9 +1,22 @@
-import { Router } from '@src/Router';
-import { Component, ComponentProps } from '../Component';
+import { Router } from '@core/Router';
+import { Component, ComponentProps } from '@core/Component';
 
 export default class MainPage extends Component {
   constructor(props: ComponentProps) {
     super(props);
+    this.state = { count: 0 };
+  }
+
+  componentDidMount() {
+    document.getElementById('root')?.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      if (target.id === 'go-to-login') {
+        const router = Router.getInstance();
+        router.navigate('/login');
+      } else if (target.id === 'increment') {
+        this.setState({ count: this.state.count + 1 });
+      }
+    });
   }
 
   render() {
@@ -13,13 +26,11 @@ export default class MainPage extends Component {
         <div>
           <button id="go-to-login">Go to Login</button>
         </div>
+        <div>
+          <p>Count: ${this.state.count}</p>
+          <button id="increment">Click me!</button>
+        </div>
       `;
-      document.getElementById('go-to-login')?.addEventListener('click', () => {
-        console.log(1);
-        const router = Router.getInstance(); // 전역 Router 인스턴스 사용
-        router.navigate('/login');
-        console.log(2);
-      });
     }
   }
 }
