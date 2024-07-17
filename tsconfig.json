@@ -13,10 +13,12 @@
       "@src/*": ["./src/*"],
       "@pages/*": ["./src/pages/*"],
       "@components/*": ["./src/components/*"],
+      "@core/*": ["./src/core/*"],
       "@styles/*": ["./src/styles/*"],
       "@assets/*": ["./src/assets/*"],
       "@scripts/*": ["./src/scripts/*"]
-    }
+    },
+    "jsx": "preserve"
   },
   "include": ["src", "preload.cjs"],
   "exclude": ["node_modules"]

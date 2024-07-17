@@ -1,4 +1,4 @@
-import { Router } from '@src/Router';
+import { Router } from '@core/Router';
 import MainPage from '@pages/Main';
 import LoginPage from '@pages/Login';
 
