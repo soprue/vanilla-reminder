@@ -15,10 +15,8 @@ export default class MainPage extends Component {
         </div>
       `;
       document.getElementById('go-to-login')?.addEventListener('click', () => {
-        console.log(1);
-        const router = Router.getInstance(); // 전역 Router 인스턴스 사용
+        const router = Router.getInstance();
         router.navigate('/login');
-        console.log(2);
       });
     }
   }
