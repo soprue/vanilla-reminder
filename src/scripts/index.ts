@@ -1,10 +1,10 @@
 import { Router } from '@core/Router';
-import MainPage from '@pages/Main';
-import LoginPage from '@pages/Login';
+import ReminderPage from '@features/reminder/presentation/ReminderPage';
+import LoginPage from '@features/auth/presentation/LoginPage';
 
 document.addEventListener('DOMContentLoaded', function () {
   const router = Router.getInstance();
-  router.add('/', MainPage);
+  router.add('/', ReminderPage);
   router.add('/login', LoginPage);
 
   router.resolve();
