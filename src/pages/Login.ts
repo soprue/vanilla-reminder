@@ -1,8 +1,8 @@
-import { Component } from '@core/Component';
+import { Component, ComponentProps } from '@core/Component';
 import jsx from '@core/JSX';
 
-export default class LoginPage extends Component {
-  constructor(props: any) {
+export default class LoginPage extends Component<ComponentProps> {
+  constructor(props: ComponentProps) {
     super(props);
   }
 

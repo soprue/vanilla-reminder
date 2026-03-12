@@ -1,24 +1,24 @@
 export interface ComponentProps {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ComponentState {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-export class Component {
-  props: ComponentProps;
-  state: ComponentState;
+export class Component<P = ComponentProps, S = ComponentState> {
+  props: P;
+  state: S;
 
-  constructor(props: ComponentProps) {
+  constructor(props: P) {
     this.props = props;
-    this.state = {};
+    this.state = {} as S; // 초기 상태 설정
     this.componentWillMount();
     this.render();
     this.componentDidMount();
   }
 
-  setState(newState: Partial<ComponentState>, callback?: () => void) {
+  setState(newState: Partial<S>, callback?: () => void) {
     this.componentWillUpdate();
     this.state = { ...this.state, ...newState };
 

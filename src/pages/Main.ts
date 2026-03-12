@@ -2,7 +2,12 @@ import { Component, ComponentProps } from '@core/Component';
 import { Router } from '@core/Router';
 import jsx from '@core/JSX';
 
-export default class MainPage extends Component {
+interface MainPageState {
+  count: number;
+  showList: boolean;
+}
+
+export default class MainPage extends Component<ComponentProps, MainPageState> {
   private router: Router;
 
   constructor(props: ComponentProps) {
