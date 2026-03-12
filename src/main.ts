@@ -10,9 +10,9 @@ function createWindow() {
     width: 400,
     height: 700,
     webPreferences: {
-      preload: path.join('preload.cjs'),
-      contextIsolation: false,
-      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
       spellcheck: false,
     },
   });
