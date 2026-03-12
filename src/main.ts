@@ -10,15 +10,25 @@ function createWindow() {
     width: 400,
     height: 700,
     webPreferences: {
-      preload: path.join('preload.cjs'),
-      contextIsolation: false,
-      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
       spellcheck: false,
     },
   });
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:9000');
+    const devUrl = 'http://localhost:9000';
+
+    // 로드 실패 시 1초 뒤 재시도
+    mainWindow.webContents.on('did-fail-load', () => {
+      console.log('Webpack server not ready yet, retrying in 1s...');
+      setTimeout(() => mainWindow.loadURL(devUrl), 1000);
+    });
+
+    mainWindow.loadURL(devUrl);
+    // 개발 모드에서 개발자 도구 자동 열기
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadURL(
       url.format({

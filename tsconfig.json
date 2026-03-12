@@ -11,7 +11,7 @@
     "sourceMap": true,
     "paths": {
       "@src/*": ["./src/*"],
-      "@pages/*": ["./src/pages/*"],
+      "@features/*": ["./src/features/*"],
       "@components/*": ["./src/components/*"],
       "@core/*": ["./src/core/*"],
       "@styles/*": ["./src/styles/*"],
