@@ -2,11 +2,9 @@ export interface ComponentProps {
   [key: string]: unknown;
 }
 
-export interface ComponentState {
-  [key: string]: unknown;
-}
+export type ComponentState = object;
 
-export class Component<P = ComponentProps, S = ComponentState> {
+export class Component<P extends ComponentProps = ComponentProps, S extends ComponentState = ComponentState> {
   props: P;
   state: S;
 

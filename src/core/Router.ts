@@ -1,8 +1,10 @@
+import { Component, ComponentProps } from './Component';
+
 export class Router {
   private static instance: Router;
-  routes: any = {};
+  private routes: Record<string, new (props: any) => Component<any, any>> = {};
 
-  constructor() {
+  private constructor() {
     window.addEventListener('popstate', this.resolve.bind(this));
   }
 
@@ -13,15 +15,15 @@ export class Router {
     return Router.instance;
   }
 
-  add(path: string, page: any) {
+  add(path: string, page: new (props: any) => Component<any, any>) {
     this.routes[path] = page;
   }
 
   resolve() {
     const { pathname } = window.location;
-    const route = this.routes[pathname] || this.routes[404];
+    const route = this.routes[pathname] || this.routes['404'];
     if (route) {
-      const page = new route();
+      const page = new route({});
       page.render();
     }
   }
