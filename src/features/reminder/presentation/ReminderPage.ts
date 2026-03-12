@@ -2,12 +2,12 @@ import { Component, ComponentProps } from '@core/Component';
 import { Router } from '@core/Router';
 import jsx from '@core/JSX';
 
-interface MainPageState {
+interface ReminderState {
   count: number;
   showList: boolean;
 }
 
-export default class MainPage extends Component<ComponentProps, MainPageState> {
+export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   private router: Router;
 
   constructor(props: ComponentProps) {

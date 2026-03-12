@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "build": "tsc && webpack",
-    "dev": "concurrently \"webpack serve\" \"electron .\""
+    "dev": "tsc && concurrently \"webpack serve\" \"electron .\""
   },
   "keywords": [],
   "author": "",

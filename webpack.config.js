@@ -5,7 +5,7 @@ const __dirname = path.resolve();
 
 export default {
   entry: '/src/scripts/index.ts',
-  target: 'electron-renderer',
+  target: 'web',
   mode: 'production',
   module: {
     rules: [
@@ -24,7 +24,7 @@ export default {
     extensions: ['.ts', '.js'],
     alias: {
       '@src': path.resolve(__dirname, './src'),
-      '@pages': path.resolve(__dirname, './src/pages'),
+      '@features': path.resolve(__dirname, './src/features'),
       '@components': path.resolve(__dirname, './src/components'),
       '@core': path.resolve(__dirname, './src/core'),
       '@styles': path.resolve(__dirname, './src/styles'),

@@ -21,11 +21,16 @@ export class Router {
   }
 
   resolve() {
-    const { pathname } = window.location;
+    let { pathname } = window.location;
+    // Electron 파일 모드일 경우 /index.html 등이 포함될 수 있으므로 정규화
+    if (pathname.endsWith('index.html')) pathname = '/';
+    
+    console.log('[Router] Current Path:', pathname);
     const route = this.routes[pathname] || this.routes['404'];
     
     if (route) {
-      // 1. 기존 페이지 언마운트 (생명주기 관리)
+      console.log('[Router] Found route for:', pathname);
+      // 1. 기존 페이지 언마운트
       if (this.currentPage) {
         this.currentPage.componentWillUnmount();
       }
@@ -33,6 +38,8 @@ export class Router {
       // 2. 새 페이지 생성 및 마운트
       this.currentPage = new route({});
       this.currentPage.render();
+    } else {
+      console.error('[Router] Route not found for:', pathname);
     }
   }
 
