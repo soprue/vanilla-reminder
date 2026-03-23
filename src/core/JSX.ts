@@ -1,123 +1,70 @@
-const TEMP = {
-  PREFIX: 'tempindex:',
-  REGEX: /tempindex:(\d+):/,
-  SEPARATOR_REGEX_G: /(tempindex:\d+:)/g,
-};
+export type VNodeType = string | Function;
 
-type JsxArg = Node | string | null | boolean | JsxArg[];
+export interface VNode {
+  type: VNodeType;
+  props: Record<string, any>;
+  children: VNodeChild[];
+}
+
+export type VNodeChild = VNode | string | number | boolean | null | undefined;
 
 /**
- * 속성 이름에 따라 요소에 이벤트 핸들러를 바인딩합니다.
- * @param {string} name - 속성의 이름입니다.
- * @param {any} value - 이벤트 리스너 함수입니다.
- * @param {Element} element - 이벤트 핸들러가 바인딩 될 DOM 요소입니다.
+ * 가상 노드(VNode)를 생성하는 함수 (Hyperscript)
+ * @param type 태그 이름 또는 컴포넌트 클래스
+ * @param props 속성 객체
+ * @param children 자식 요소들
  */
-function bindEventHandler(name: string, value: any, element: Element) {
-  if (typeof value === 'function') {
-    element.addEventListener(name.replace('on', '').toLowerCase(), value);
-    element.removeAttribute(name);
+export function h(
+  type: VNodeType,
+  props: Record<string, any> | null,
+  ...children: VNodeChild[]
+): VNode {
+  return {
+    type,
+    props: props || {},
+    children: children.flat().filter((child) => child !== null && child !== undefined && child !== false),
+  };
+}
+
+/**
+ * VNode 설계도를 바탕으로 실제 DOM 노드를 생성하는 기술자 함수
+ * @param vNode 변환할 가상 노드
+ */
+export function createDOM(vNode: VNodeChild): Node {
+  // 1. 단순한 글자나 숫자면? -> 텍스트 노드(TextNode) 생성
+  if (typeof vNode === 'string' || typeof vNode === 'number') {
+    return document.createTextNode(String(vNode));
   }
-}
 
-/**
- * 문자열을 사용해 DocumentFragment를 생성합니다.
- * @param {string} [str] - DocumentFragment에 추가될 텍스트입니다.
- * @returns {DocumentFragment} 생성된 DocumentFragment를 반환합니다.
- */
-function createTextFragment(str?: string): DocumentFragment {
-  const fragment = document.createDocumentFragment();
-  if (str) fragment.appendChild(document.createTextNode(str));
-  return fragment;
-}
+  // 2. 만약 비어있는 값(null, undefined, boolean)이라면? -> 빈 텍스트 노드 생성
+  if (vNode === null || vNode === undefined || typeof vNode === 'boolean') {
+    return document.createTextNode('');
+  }
 
-/**
- * JsxArg 타입의 인자를 Node로 변환하여 DocumentFragment에 추가합니다.
- * @param {JsxArg} arg - 변환될 JsxArg 인자입니다.
- * @returns {DocumentFragment} Node 요소가 포함된 DocumentFragment를 반환합니다.
- */
-function convertJsxArgToNode(arg: JsxArg): DocumentFragment {
-  const fragment = document.createDocumentFragment();
+  // 3. 태그 이름(type)이 글자(div, h1 등)인 경우
+  if (typeof vNode.type === 'string') {
+    // 뼈대 엘리먼트 생성
+    const $el = document.createElement(vNode.type);
 
-  if (arg instanceof Node) {
-    fragment.appendChild(arg);
-  } else if (Array.isArray(arg)) {
-    arg.forEach((item) => {
-      if (item instanceof Node) {
-        fragment.appendChild(item);
+    // 속성(Props) 입히기
+    Object.entries(vNode.props).forEach(([key, value]) => {
+      // 이벤트 핸들러 처리 (on으로 시작하는 경우, 예: onclick)
+      if (key.startsWith('on') && typeof value === 'function') {
+        const eventName = key.toLowerCase().substring(2); // 'onclick' -> 'click'
+        $el.addEventListener(eventName, value);
       } else {
-        let container = document.createElement('div');
-        container.innerHTML = item as string;
-        while (container.firstChild) {
-          fragment.appendChild(container.firstChild);
-        }
+        $el.setAttribute(key, value);
       }
     });
-  } else if (arg !== null && arg !== false) {
-    fragment.appendChild(createTextFragment(String(arg)));
+
+    // 자식들(Children)을 하나씩 진짜 DOM으로 만들어서 내 품에 안기기 (재귀)
+    vNode.children.forEach((child) => {
+      $el.appendChild(createDOM(child));
+    });
+
+    return $el;
   }
 
-  return fragment;
+  // 4. 만약 type이 함수(컴포넌트)라면? (나중에 구현할 단계입니다)
+  return document.createTextNode('');
 }
-
-/**
- * 텍스트 노드를 처리하여 템플릿 변수를 실제 값으로 대체합니다.
- * @param {Node} node - 처리될 텍스트 노드입니다.
- * @param {JsxArg[]} args - 템플릿 변수에 해당하는 실제 값들의 배열입니다.
- */
-function processTextNode(node: Node, args: JsxArg[]): void {
-  if (
-    node.nodeType !== Node.TEXT_NODE ||
-    !node.nodeValue?.includes(TEMP.PREFIX)
-  )
-    return;
-
-  const texts = node.nodeValue.split(TEMP.SEPARATOR_REGEX_G);
-  const fragment = document.createDocumentFragment();
-
-  texts.forEach((text) => {
-    const tempindex = TEMP.REGEX.exec(text)?.[1];
-    if (!tempindex) {
-      fragment.appendChild(document.createTextNode(text));
-    } else {
-      fragment.appendChild(convertJsxArgToNode(args[Number(tempindex)]));
-    }
-  });
-
-  node.parentNode?.replaceChild(fragment, node);
-}
-
-/**
- * TemplateStringsArray와 관련 인자들을 사용하여 JSX 형태의 Element를 생성합니다.
- * @param {TemplateStringsArray} strings - 문자열 리터럴 배열입니다.
- * @param {...any[]} args - 각 문자열 리터럴 사이에 삽입될 인자들입니다.
- * @returns {Element} 생성된 Element를 반환합니다.
- */
-const jsx = (strings: TemplateStringsArray, ...args: any[]): Element => {
-  let template = document.createElement('div');
-
-  template.innerHTML = strings
-    .map((str, i) => `${str}${i < args.length ? `${TEMP.PREFIX}${i}:` : ''}`)
-    .join('');
-
-  let walker = document.createNodeIterator(template, NodeFilter.SHOW_ALL);
-  let node: Node | null;
-
-  while ((node = walker.nextNode())) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      processTextNode(node, args);
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      let element = node as Element;
-      Array.from(element.attributes).forEach(({ name, value }) => {
-        if (value.includes(TEMP.PREFIX)) {
-          const match = TEMP.REGEX.exec(value);
-          if (match)
-            bindEventHandler(name, args[parseInt(match[1], 10)], element);
-        }
-      });
-    }
-  }
-
-  return template;
-};
-
-export default jsx;
