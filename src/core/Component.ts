@@ -1,3 +1,5 @@
+import { updateDOM, VNodeChild } from "./JSX";
+
 export interface ComponentProps {
   [key: string]: unknown;
 }
@@ -11,13 +13,18 @@ export class Component<
   target: HTMLElement;
   props: P;
   state: S;
+  private oldVNode: VNodeChild;
 
   constructor(target: HTMLElement, props: P) {
     this.target = target;
     this.props = props;
     this.state = {} as S; // 초기 상태 설정
     this.componentWillMount();
-    this.render();
+
+    const newVNode = this.render();
+    updateDOM(this.target, newVNode, undefined);
+    this.oldVNode = newVNode;
+
     this.componentDidMount();
   }
 
@@ -25,11 +32,12 @@ export class Component<
     this.componentWillUpdate();
     this.state = { ...this.state, ...newState };
 
-    Promise.resolve().then(() => {
-      this.render();
-      this.componentDidUpdate();
-      if (callback) callback();
-    });
+    const newVNode = this.render();
+    updateDOM(this.target, newVNode, this.oldVNode);
+    this.oldVNode = newVNode;
+
+    this.componentDidUpdate();
+    if (callback) callback();
   }
 
   componentWillMount() {
