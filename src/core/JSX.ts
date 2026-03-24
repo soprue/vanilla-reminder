@@ -22,7 +22,11 @@ export function h(
   return {
     type,
     props: props || {},
-    children: children.flat().filter((child) => child !== null && child !== undefined && child !== false),
+    children: children
+      .flat()
+      .filter(
+        (child) => child !== null && child !== undefined && child !== false,
+      ),
   };
 }
 
@@ -32,24 +36,24 @@ export function h(
  */
 export function createDOM(vNode: VNodeChild): Node {
   // 1. 단순한 글자나 숫자면? -> 텍스트 노드(TextNode) 생성
-  if (typeof vNode === 'string' || typeof vNode === 'number') {
+  if (typeof vNode === "string" || typeof vNode === "number") {
     return document.createTextNode(String(vNode));
   }
 
   // 2. 만약 비어있는 값(null, undefined, boolean)이라면? -> 빈 텍스트 노드 생성
-  if (vNode === null || vNode === undefined || typeof vNode === 'boolean') {
-    return document.createTextNode('');
+  if (vNode === null || vNode === undefined || typeof vNode === "boolean") {
+    return document.createTextNode("");
   }
 
   // 3. 태그 이름(type)이 글자(div, h1 등)인 경우
-  if (typeof vNode.type === 'string') {
+  if (typeof vNode.type === "string") {
     // 뼈대 엘리먼트 생성
     const $el = document.createElement(vNode.type);
 
     // 속성(Props) 입히기
     Object.entries(vNode.props).forEach(([key, value]) => {
       // 이벤트 핸들러 처리 (on으로 시작하는 경우, 예: onclick)
-      if (key.startsWith('on') && typeof value === 'function') {
+      if (key.startsWith("on") && typeof value === "function") {
         const eventName = key.toLowerCase().substring(2); // 'onclick' -> 'click'
         $el.addEventListener(eventName, value);
       } else {
@@ -66,5 +70,28 @@ export function createDOM(vNode: VNodeChild): Node {
   }
 
   // 4. 만약 type이 함수(컴포넌트)라면? (나중에 구현할 단계입니다)
-  return document.createTextNode('');
+  return document.createTextNode("");
+}
+
+/**
+ * 두 노드가 변경되었는지 확인하는 헬퍼 함수입니다.
+ * 1. 데이터 타입이 다르면 변경됨 (true)
+ * 2. 문자열이나 숫자인데 값이 다르면 변경됨 (true)
+ * 3. 객체(VNode)인데 태그 이름(type)이 다르면 변경됨 (true)
+ */
+function isChanged(node1: VNodeChild, node2: VNodeChild) {
+  if (typeof node1 !== typeof node2) return true;
+
+  if (typeof node1 === "string" || typeof node1 === "number")
+    return node1 !== node2;
+
+  if (
+    typeof node1 === "object" &&
+    node1 !== null &&
+    typeof node2 === "object" &&
+    node2 !== null
+  )
+    return node1.type !== node2.type;
+
+  return false;
 }

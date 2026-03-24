@@ -4,11 +4,16 @@ export interface ComponentProps {
 
 export type ComponentState = object;
 
-export class Component<P extends ComponentProps = ComponentProps, S extends ComponentState = ComponentState> {
+export class Component<
+  P extends ComponentProps = ComponentProps,
+  S extends ComponentState = ComponentState,
+> {
+  target: HTMLElement;
   props: P;
   state: S;
 
-  constructor(props: P) {
+  constructor(target: HTMLElement, props: P) {
+    this.target = target;
     this.props = props;
     this.state = {} as S; // 초기 상태 설정
     this.componentWillMount();
@@ -51,4 +56,6 @@ export class Component<P extends ComponentProps = ComponentProps, S extends Comp
   render() {
     // UI 렌더링 함수
   }
+
+  template() {}
 }
