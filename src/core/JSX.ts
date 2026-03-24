@@ -74,6 +74,91 @@ export function createDOM(vNode: VNodeChild): Node {
 }
 
 /**
+ * 가상 DOM 비교 및 실제 DOM 반영 (Reconciliation)
+ */
+export function updateDOM(
+  $parent: Node,
+  newVNode: VNodeChild,
+  oldVNode: VNodeChild,
+  index = 0
+) {
+  const $child = $parent.childNodes[index];
+
+  // 1. 노드가 새로 추가된 경우
+  if (oldVNode === undefined) {
+    $parent.appendChild(createDOM(newVNode));
+    return;
+  }
+
+  // 2. 노드가 삭제된 경우
+  if (newVNode === undefined) {
+    $parent.removeChild($child);
+    return;
+  }
+
+  // 3. 노드 타입이 변경된 경우 (완전히 다른 태그나 텍스트)
+  if (isChanged(newVNode, oldVNode)) {
+    $parent.replaceChild(createDOM(newVNode), $child);
+    return;
+  }
+
+  // 4. 같은 타입의 엘리먼트인 경우, 자식들을 비교
+  if (
+    typeof newVNode === "object" &&
+    newVNode !== null &&
+    typeof oldVNode === "object" &&
+    oldVNode !== null
+  ) {
+    // 속성 업데이트 추가
+    updateAttributes($child as HTMLElement, oldVNode.props, newVNode.props);
+
+    const newChildren = newVNode.children;
+    const oldChildren = oldVNode.children;
+    const maxLength = Math.max(newChildren.length, oldChildren.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      updateDOM($child, newChildren[i], oldChildren[i], i);
+    }
+  }
+}
+
+/**
+ * 속성 업데이트 (이벤트 핸들러 포함)
+ */
+function updateAttributes(
+  $el: HTMLElement,
+  oldProps: Record<string, any>,
+  newProps: Record<string, any>
+) {
+  // 이전 속성 제거
+  Object.keys(oldProps).forEach((key) => {
+    if (!(key in newProps)) {
+      if (key.startsWith("on")) {
+        const eventName = key.toLowerCase().substring(2);
+        $el.removeEventListener(eventName, oldProps[key]);
+      } else {
+        $el.removeAttribute(key);
+      }
+    }
+  });
+
+  // 새로운 속성 설정
+  Object.keys(newProps).forEach((key) => {
+    if (oldProps[key] !== newProps[key]) {
+      if (key.startsWith("on")) {
+        const eventName = key.toLowerCase().substring(2);
+        if (oldProps[key]) {
+          $el.removeEventListener(eventName, oldProps[key]);
+        }
+        $el.addEventListener(eventName, newProps[key]);
+      } else {
+        $el.setAttribute(key, newProps[key]);
+      }
+    }
+  });
+}
+
+/**
  * 두 노드가 변경되었는지 확인하는 헬퍼 함수입니다.
  * 1. 데이터 타입이 다르면 변경됨 (true)
  * 2. 문자열이나 숫자인데 값이 다르면 변경됨 (true)
