@@ -6,6 +6,9 @@ export interface ComponentProps {
 
 export type ComponentState = object;
 
+/**
+ * 모든 컴포넌트의 기반이 되는 최상위 클래스
+ */
 export class Component<
   P extends ComponentProps = ComponentProps,
   S extends ComponentState = ComponentState,
@@ -18,52 +21,74 @@ export class Component<
   constructor(target: HTMLElement, props: P) {
     this.target = target;
     this.props = props;
-    this.state = {} as S; // 초기 상태 설정
+    this.state = {} as S;
+    
+    // 1. 초기화 로직 실행
+    this.init();
+    
+    // 2. 마운트 시작 전 생명 주기 호출
     this.componentWillMount();
 
-    const newVNode = this.render();
-    updateDOM(this.target, newVNode, undefined);
-    this.oldVNode = newVNode;
+    // 3. 최초 렌더링 실행
+    this.mount();
 
+    // 4. 마운트 완료 후 생명 주기 호출
     this.componentDidMount();
   }
 
+  /**
+   * 컴포넌트 초기 설정 (State 초기화 등)
+   */
+  init() {}
+
+  /**
+   * 실제 DOM에 컴포넌트를 부착하는 내부 메서드
+   */
+  private mount() {
+    // 기존 내용을 비우고 새로 그림
+    this.target.innerHTML = "";
+    const newVNode = this.render();
+    
+    if (newVNode) {
+      updateDOM(this.target, newVNode, undefined);
+      this.oldVNode = newVNode;
+    }
+  }
+
+  /**
+   * 상태를 변경하고 UI를 업데이트함
+   */
   setState(newState: Partial<S>, callback?: () => void) {
+    // 업데이트 전 생명 주기
     this.componentWillUpdate();
+    
     this.state = { ...this.state, ...newState };
 
+    // 가상 DOM 비교 및 부분 업데이트
     const newVNode = this.render();
-    updateDOM(this.target, newVNode, this.oldVNode);
-    this.oldVNode = newVNode;
+    if (newVNode) {
+      updateDOM(this.target, newVNode, this.oldVNode);
+      this.oldVNode = newVNode;
+    }
 
+    // 업데이트 완료 후 생명 주기
     this.componentDidUpdate();
     if (callback) callback();
   }
 
-  componentWillMount() {
-    // 컴포넌트가 마운트 되기 전 호출
-  }
+  // --- 생명 주기 메서드 (자식에서 오버라이드하여 사용) ---
 
-  componentDidMount() {
-    // 컴포넌트가 마운트 된 후 호출
-  }
+  componentWillMount() {}
+  componentDidMount() {}
+  componentWillUpdate() {}
+  componentDidUpdate() {}
+  componentWillUnmount() {}
 
-  componentWillUpdate() {
-    // 컴포넌트가 업데이트 되기 전 호출
+  /**
+   * UI 구조를 정의하는 핵심 메서드.
+   * 자식 컴포넌트에서 반드시 오버라이드하여 jsx`...`를 반환해야 합니다.
+   */
+  render(): VNodeChild {
+    return null;
   }
-
-  componentDidUpdate() {
-    // 컴포넌트가 업데이트 된 후 호출
-  }
-
-  componentWillUnmount() {
-    // 컴포넌트가 언마운트 되기 전에 호출
-    // 여기에 리소스 해제 로직 추가
-  }
-
-  render() {
-    // UI 렌더링 함수
-  }
-
-  template() {}
 }

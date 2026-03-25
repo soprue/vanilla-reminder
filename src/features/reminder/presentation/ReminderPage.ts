@@ -1,6 +1,6 @@
 import { Component, ComponentProps } from '@core/Component';
 import { Router } from '@core/Router';
-import jsx from '@core/JSX';
+import jsx, { createDOM } from '@core/JSX';
 
 interface ReminderState {
   count: number;
@@ -10,8 +10,8 @@ interface ReminderState {
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   private router: Router;
 
-  constructor(props: ComponentProps) {
-    super(props);
+  constructor(target: HTMLElement, props: ComponentProps) {
+    super(target, props);
     this.state = { count: 1, showList: false };
     this.router = Router.getInstance();
   }
@@ -31,9 +31,9 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   render() {
     const count = this.state?.count ?? 0;
     const showList = this.state?.showList ?? false;
-    const items = ['Apple', 'Banana', 'Cherry'];
+    const items = ["Apple", "Banana", "Cherry"];
 
-    const contents = jsx`
+    return jsx`
       <div>
         <button onclick="${() => this.goToLogin()}">Go to Login</button>
         <div>
@@ -44,7 +44,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
         </div>
         <div>
           <button onclick="${() => this.toggleList()}">
-            ${showList ? 'Hide' : 'Show'} List
+            ${showList ? "Hide" : "Show"} List
           </button>
           ${
             showList
@@ -54,11 +54,5 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
         </div>
       </div>
     `;
-
-    const element = document.getElementById('root');
-    if (element) {
-      element.innerHTML = '';
-      element.appendChild(contents);
-    }
   }
 }

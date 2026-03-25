@@ -2,7 +2,10 @@ import { Component, ComponentProps } from './Component';
 
 export class Router {
   private static instance: Router;
-  private routes: Record<string, new (props: any) => Component<any, any>> = {};
+  private routes: Record<
+    string,
+    new (target: HTMLElement, props: any) => Component<any, any>
+  > = {};
   private currentPage: Component<any, any> | null = null;
 
   private constructor() {
@@ -16,8 +19,8 @@ export class Router {
     return Router.instance;
   }
 
-  add(path: string, page: new (props: any) => Component<any, any>) {
-    this.routes[path] = page;
+  add(path: string, page: new (target: HTMLElement, props: any) => Component<any, any>) {
+    this.routes[path] = page as any;
   }
 
   resolve() {
@@ -26,18 +29,21 @@ export class Router {
     if (pathname.endsWith('index.html')) pathname = '/';
     
     console.log('[Router] Current Path:', pathname);
-    const route = this.routes[pathname] || this.routes['404'];
+    const route = this.routes[pathname] || this.routes['/'];
     
     if (route) {
-      console.log('[Router] Found route for:', pathname);
-      // 1. 기존 페이지 언마운트
-      if (this.currentPage) {
-        this.currentPage.componentWillUnmount();
-      }
+      const target = document.getElementById('root');
+      if (target) {
+        console.log('[Router] Found route for:', pathname);
+        // 1. 기존 페이지 언마운트
+        if (this.currentPage) {
+          this.currentPage.componentWillUnmount();
+        }
 
-      // 2. 새 페이지 생성 및 마운트
-      this.currentPage = new route({});
-      this.currentPage.render();
+        // 2. 새 페이지 생성 및 마운트
+        this.currentPage = new route(target, {});
+        this.currentPage.render();
+      }
     } else {
       console.error('[Router] Route not found for:', pathname);
     }
