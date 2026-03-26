@@ -93,11 +93,12 @@ export class Component<
    * 컴포넌트를 명시적으로 제거할 때 호출
    */
   unmount() {
+    console.log(`🧹 [Component] ${this.constructor.name} 언마운트 및 청소 시작`);
     this.componentWillUnmount();
     // 구독 해제 처리
     this.unsubs.forEach((unsub) => unsub());
     this.unsubs = [];
-    this.target.innerHTML = '';
+    this.target.innerHTML = "";
   }
 
   // --- 생명 주기 메서드 (자식에서 오버라이드하여 사용) ---

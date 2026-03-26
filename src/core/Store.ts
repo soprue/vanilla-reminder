@@ -33,6 +33,7 @@ export class Store<T extends object> {
     this.listeners.add(listener);
     // 구독 해제 함수 반환
     return () => {
+      console.log("[Store] ✅ 구독 해제 완료 (리스너 제거됨)");
       this.listeners.delete(listener);
     };
   }

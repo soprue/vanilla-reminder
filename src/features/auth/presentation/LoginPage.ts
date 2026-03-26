@@ -1,6 +1,7 @@
 import { Component, ComponentProps } from '@core/Component';
-import jsx, { createDOM } from '@core/JSX';
+import jsx from '@core/JSX';
 import { authStore } from '@src/shared/store/AuthStore';
+import { Router } from '@src/core/Router';
 
 export default class LoginPage extends Component<ComponentProps> {
   init() {
@@ -13,6 +14,10 @@ export default class LoginPage extends Component<ComponentProps> {
 
   handleLogout() {
     authStore.logout();
+  }
+
+  handleGoMain() {
+    Router.getInstance().navigate('/');
   }
 
   render() {
@@ -32,7 +37,10 @@ export default class LoginPage extends Component<ComponentProps> {
                     this
                   )}">로그인</button></div>`
             }
+            <hr />
+            <button onclick="${this.handleGoMain.bind(this)}">🏠 메인 페이지로 가기</button>
           </div>
     `;
   }
 }
+
