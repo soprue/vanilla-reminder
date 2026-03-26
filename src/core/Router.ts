@@ -19,7 +19,10 @@ export class Router {
     return Router.instance;
   }
 
-  add(path: string, page: new (target: HTMLElement, props: any) => Component<any, any>) {
+  add(
+    path: string,
+    page: new (target: HTMLElement, props: any) => Component<any, any>
+  ) {
     this.routes[path] = page as any;
   }
 
@@ -27,17 +30,17 @@ export class Router {
     let { pathname } = window.location;
     // Electron 파일 모드일 경우 /index.html 등이 포함될 수 있으므로 정규화
     if (pathname.endsWith('index.html')) pathname = '/';
-    
+
     console.log('[Router] Current Path:', pathname);
     const route = this.routes[pathname] || this.routes['/'];
-    
+
     if (route) {
       const target = document.getElementById('root');
       if (target) {
         console.log('[Router] Found route for:', pathname);
         // 1. 기존 페이지 언마운트
         if (this.currentPage) {
-          this.currentPage.componentWillUnmount();
+          this.currentPage.unmount();
         }
 
         // 2. 새 페이지 생성 및 마운트
