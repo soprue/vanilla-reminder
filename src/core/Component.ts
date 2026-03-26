@@ -1,4 +1,5 @@
-import { updateDOM, VNodeChild } from "./JSX";
+import { updateDOM, VNodeChild } from './JSX';
+import { Store } from './Store';
 
 export interface ComponentProps {
   [key: string]: unknown;
@@ -11,21 +12,22 @@ export type ComponentState = object;
  */
 export class Component<
   P extends ComponentProps = ComponentProps,
-  S extends ComponentState = ComponentState,
+  S extends ComponentState = ComponentState
 > {
   target: HTMLElement;
   props: P;
   state: S;
   private oldVNode: VNodeChild;
+  private unsubs: (() => void)[] = [];
 
   constructor(target: HTMLElement, props: P) {
     this.target = target;
     this.props = props;
     this.state = {} as S;
-    
+
     // 1. 초기화 로직 실행
     this.init();
-    
+
     // 2. 마운트 시작 전 생명 주기 호출
     this.componentWillMount();
 
@@ -42,13 +44,24 @@ export class Component<
   init() {}
 
   /**
+   * 전역 스토어를 구독함. 상태가 변하면 리렌더링됨.
+   */
+  subscribe(store: Store<any>) {
+    const unsub = store.subscribe(() => {
+      // 단순히 리렌더링을 트리거하기 위해 빈 객체로 setState 호출
+      this.setState({} as Partial<S>);
+    });
+    this.unsubs.push(unsub);
+  }
+
+  /**
    * 실제 DOM에 컴포넌트를 부착하는 내부 메서드
    */
   private mount() {
     // 기존 내용을 비우고 새로 그림
-    this.target.innerHTML = "";
+    this.target.innerHTML = '';
     const newVNode = this.render();
-    
+
     if (newVNode) {
       updateDOM(this.target, newVNode, undefined);
       this.oldVNode = newVNode;
@@ -61,7 +74,7 @@ export class Component<
   setState(newState: Partial<S>, callback?: () => void) {
     // 업데이트 전 생명 주기
     this.componentWillUpdate();
-    
+
     this.state = { ...this.state, ...newState };
 
     // 가상 DOM 비교 및 부분 업데이트
@@ -74,6 +87,17 @@ export class Component<
     // 업데이트 완료 후 생명 주기
     this.componentDidUpdate();
     if (callback) callback();
+  }
+
+  /**
+   * 컴포넌트를 명시적으로 제거할 때 호출
+   */
+  unmount() {
+    this.componentWillUnmount();
+    // 구독 해제 처리
+    this.unsubs.forEach((unsub) => unsub());
+    this.unsubs = [];
+    this.target.innerHTML = '';
   }
 
   // --- 생명 주기 메서드 (자식에서 오버라이드하여 사용) ---
