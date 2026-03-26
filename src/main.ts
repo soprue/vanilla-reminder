@@ -1,24 +1,43 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const url = require('url');
+import { app, BrowserWindow } from 'electron';
+import path from 'path';
+import url from 'url';
+import isDev from 'electron-is-dev';
+
+const __dirname = path.resolve();
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 400,
+    height: 700,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
+      nodeIntegration: false,
+      spellcheck: false,
     },
   });
 
-  const startUrl = url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true,
-  });
+  if (isDev) {
+    const devUrl = 'http://localhost:9000';
 
-  mainWindow.loadURL(startUrl);
+    // 로드 실패 시 1초 뒤 재시도
+    mainWindow.webContents.on('did-fail-load', () => {
+      console.log('Webpack server not ready yet, retrying in 1s...');
+      setTimeout(() => mainWindow.loadURL(devUrl), 1000);
+    });
+
+    mainWindow.loadURL(devUrl);
+    // 개발 모드에서 개발자 도구 자동 열기
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadURL(
+      url.format({
+        pathname: path.join(__dirname, 'index.html'),
+        protocol: 'file:',
+        slashes: true,
+      })
+    );
+  }
 }
 
 app.whenReady().then(() => {
