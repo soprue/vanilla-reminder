@@ -1,25 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "commonjs",
     "strict": true,
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "sourceMap": true,
-    "paths": {
-      "@src/*": ["./src/*"],
-      "@features/*": ["./src/features/*"],
-      "@components/*": ["./src/components/*"],
-      "@core/*": ["./src/core/*"],
-      "@styles/*": ["./src/styles/*"],
-      "@assets/*": ["./src/assets/*"],
-      "@scripts/*": ["./src/scripts/*"]
-    },
-    "jsx": "preserve"
+    "sourceMap": true
   },
-  "include": ["src", "preload.cjs"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

@@ -1,12 +1,10 @@
-import path from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const __dirname = path.resolve();
-
-export default {
-  entry: '/src/scripts/index.ts',
-  target: 'web',
-  mode: 'production',
+module.exports = {
+  entry: './src/scripts/app.ts',
+  target: 'electron-renderer',
+  mode: 'development',
   module: {
     rules: [
       {
@@ -22,20 +20,10 @@ export default {
   },
   resolve: {
     extensions: ['.ts', '.js'],
-    alias: {
-      '@src': path.resolve(__dirname, './src'),
-      '@features': path.resolve(__dirname, './src/features'),
-      '@components': path.resolve(__dirname, './src/components'),
-      '@core': path.resolve(__dirname, './src/core'),
-      '@styles': path.resolve(__dirname, './src/styles'),
-      '@assets': path.resolve(__dirname, './src/assets'),
-      '@scripts': path.resolve(__dirname, './src/scripts'),
-    },
   },
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/',
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -44,12 +32,4 @@ export default {
     }),
   ],
   devtool: 'source-map',
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-      publicPath: '/',
-    },
-    compress: true,
-    port: 9000,
-  },
 };

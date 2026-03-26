@@ -1,21 +1,16 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- 개발 환경에서는 Webpack Dev Server 리소스 로드를 위해 CSP를 임시 비활성화합니다. -->
-    <!-- <meta
+    <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:9000 http://localhost:9000;"
-    /> -->
+      content="default-src 'self'; script-src 'self'; style-src 'self';"
+    />
     <title>Vanilla Reminder</title>
   </head>
   <body>
-    <script>
-      // Webpack 5와 일부 라이브러리에서 필요한 global 변수를 정의합니다.
-      window.global = window;
-    </script>
-    <div id="root"></div>
-    <script src="bundle.js"></script>
+    <div id="app">hi</div>
+    <script src="scripts/app.js"></script>
   </body>
 </html>
