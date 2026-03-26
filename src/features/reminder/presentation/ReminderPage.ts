@@ -8,12 +8,15 @@ interface ReminderState {
 }
 
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
-  private router: Router;
+  private router!: Router;
+
+  init() {
+    this.state = { count: 1, showList: false };
+    this.router = Router.getInstance();
+  }
 
   constructor(target: HTMLElement, props: ComponentProps) {
     super(target, props);
-    this.state = { count: 1, showList: false };
-    this.router = Router.getInstance();
   }
 
   goToLogin() {
