@@ -1,4 +1,62 @@
-/* 전역 설정 */
+/* 
+  Vanilla Reminder Design System v2
+  - Design Tokens (Spacing, Radius, Transitions, Shadows)
+*/
+
+:root {
+  /* 1. Colors */
+  --color-bg: #efefef;
+  --color-white: #ffffff;
+  --color-primary: #e74c32;
+  --color-black: #1a1a1a;
+  --color-gray-dark: #2c2c2c;
+  --color-gray-medium: #888888;
+  --color-gray-light: #dadada;
+  --color-icon-brown: #281817;
+  --color-plus-bg: #d9d9d9;
+  --color-plus-icon: #a5a5a5;
+
+  /* 2. Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+
+  /* 3. Spacing System (8px Scale) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* 4. Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* 5. Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.04);
+  --shadow-sidebar: 0px 4px 4px rgba(0, 0, 0, 0.05);
+
+  /* 6. Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+
+  /* 7. Dimensions */
+  --sidebar-width: 60px;
+  --card-max-width: 340px;
+  --plus-btn-size: 90px;
+}
+
+/* ==========================================
+   1. Base & Reset
+   ========================================== */
 html,
 body {
   height: 100%;
@@ -8,122 +66,85 @@ body {
 
 body {
   box-sizing: border-box;
-  background-color: #efefef;
+  background-color: var(--color-bg);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
-  overflow: hidden; /* 전체 스크롤 방지 */
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
 #root {
   height: 100%;
 }
 
+/* ==========================================
+   2. Layout Structure
+   ========================================== */
 .app-container {
   display: flex;
   width: 100%;
   height: 100%;
-  background: #efefef;
+  background: var(--color-bg);
 }
 
-/* 사이드바 (완전 고정) */
 .sidemenu {
-  width: 60px;
-  flex-shrink: 0;
+  width: var(--sidebar-width);
   height: 100%;
-  background: #ffffff;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sidebar);
   position: relative;
+  flex-shrink: 0;
   z-index: 100;
 }
 
-.logo-img {
-  width: 25px;
-  height: 25px;
-  margin: 20px auto;
-  background-color: #d9d9d9;
-  border-radius: 4px;
-}
-
-.sidemenu-buttons {
-  position: absolute;
-  bottom: 13px;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 11px;
-}
-
-.icon-circle {
-  width: 31px;
-  height: 31px;
-  background: #efefef;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-
-.icon-circle img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-}
-
-/* 리스트 스크롤 영역 (가로/세로 스크롤 허용) */
 .reminder-list-wrapper {
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  overflow-x: auto; /* 리스트 영역 내 가로 스크롤 허용 */
-  padding: 20px;
+  overflow-x: auto;
+  padding: var(--spacing-lg) var(--spacing-md);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--spacing-md);
   scroll-behavior: smooth;
 }
 
 .reminder-list-wrapper::-webkit-scrollbar {
   width: 4px;
-  height: 4px; /* 가로 스크롤바 높이 추가 */
 }
 
 .reminder-list-wrapper::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
-/* 섹션 카드 (최소 너비 보호) */
+/* ==========================================
+   3. Common Components
+   ========================================== */
+
 .section-card {
   width: 100%;
-  min-width: 303px; /* 피그마 사양 유지, 이보다 작아지면 가로 스크롤 발생 */
-  max-width: 340px;
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 24px 25px;
+  min-width: 303px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   box-sizing: border-box;
-  position: relative;
-  margin: 0 auto;
 }
 
 .section-title {
   font-weight: 700;
-  font-size: 20px;
-  line-height: 24px;
-  color: #e74c32;
-  margin: 0 0 20px 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-lg) 0;
+  letter-spacing: -0.02em;
 }
 
-/* 리마인더 아이템 행 */
 .reminder-row {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  margin-bottom: 30px;
-  position: relative;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 .reminder-row:last-child {
@@ -131,16 +152,18 @@ body {
 }
 
 .checkbox-rect {
-  width: 15px;
-  height: 15px;
-  border: 1px solid #281817;
-  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-icon-brown);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
+  cursor: pointer;
+  transition: var(--transition-fast);
 }
 
 .checkbox-rect.done {
-  border-color: #dadada;
+  border-color: var(--color-gray-light);
 }
 
 .item-content {
@@ -149,45 +172,42 @@ body {
   flex: 1;
 }
 
-.text-main {
-  font-weight: 500;
-  font-size: 16px;
-  color: #000000;
-  margin: 0;
-}
-
+.text-main,
 .text-sub {
   font-weight: 500;
-  font-size: 14px;
-  color: #000000;
+  font-size: var(--font-size-base);
+  color: var(--color-black);
   margin: 0;
+  line-height: 1.4;
 }
 
 .text-time {
-  font-weight: 500;
-  font-size: 12px;
-  color: #888888;
-  margin-top: 4px;
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-medium);
+  margin-top: var(--spacing-xs);
 }
 
 .text-done {
-  color: #dadada;
+  color: var(--color-gray-light);
 }
 
-/* 플러스 버튼 */
+/* ==========================================
+   4. Action Buttons
+   ========================================== */
 .plus-btn-container {
-  width: 92px; /* 92px에서 크기 키움 */
-  height: 92px;
-  background: #d9d9d9;
-  border-radius: 50%;
+  width: var(--plus-btn-size);
+  height: var(--plus-btn-size);
+  background: var(--color-plus-bg);
+  border-radius: var(--radius-full);
   border: none;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  margin: 20px auto 50px auto;
+  margin: var(--spacing-sm) auto var(--spacing-2xl) auto;
   flex-shrink: 0;
-  transition: transform 0.2s;
+  transition: var(--transition-normal);
 }
 
 .plus-btn-container:hover {
@@ -197,4 +217,101 @@ body {
 .plus-btn-container img {
   width: 30px;
   height: 30px;
+}
+
+/* ==========================================
+   5. Sidebar Elements
+   ========================================== */
+.logo-img {
+  width: 25px;
+  height: 25px;
+  margin: var(--spacing-lg) auto;
+  background-color: var(--color-plus-bg);
+  border-radius: var(--radius-sm);
+}
+
+.sidemenu-buttons {
+  position: absolute;
+  bottom: var(--spacing-lg);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.icon-circle {
+  width: 34px;
+  height: 34px;
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.icon-circle:hover {
+  background: var(--color-gray-light);
+}
+
+/* ==========================================
+   6. LoginPage
+   ========================================== */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.login-card {
+  background: var(--color-white);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: 24px;
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-black);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.login-input {
+  padding: 14px 16px;
+  border: 1px solid #eeeeee;
+  border-radius: 10px;
+  font-size: var(--font-size-base);
+  background: #fafafa;
+  outline: none;
+  transition: var(--transition-normal);
+}
+
+.login-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.login-button {
+  padding: 14px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: var(--spacing-sm);
 }

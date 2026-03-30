@@ -9,6 +9,9 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 400,
     height: 700,
+    minWidth: 400,
+    maxWidth: 600,
+    minHeight: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
