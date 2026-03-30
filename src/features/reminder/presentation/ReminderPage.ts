@@ -7,6 +7,7 @@ import { authStore } from '@src/shared/store/AuthStore';
 import halfmoonIcon from '@assets/icons/halfmoon.svg';
 import sunlightIcon from '@assets/icons/sunlight.svg';
 import logoutIcon from '@assets/icons/logout.svg';
+import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
   isDarkMode: boolean;
@@ -117,7 +118,9 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
           </section>
 
           <!-- Plus Button (Naturally placed at the end) -->
-          <button class="plus-btn-container">+</button>
+          <button class="plus-btn-container">
+            <img src="${plusIcon}" alt="add" />
+          </button>
         </div>
       </div>
     `;
