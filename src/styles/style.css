@@ -132,17 +132,38 @@ body {
   box-sizing: border-box;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
 .section-title {
   font-weight: 700;
   font-size: var(--font-size-xl);
   color: var(--color-primary);
-  margin: 0 0 var(--spacing-lg) 0;
+  margin: 0; /* 헤더에서 정렬하므로 마진 제거 */
   letter-spacing: -0.02em;
 }
 
+.section-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.section-delete-btn:hover {
+  transform: scale(1.1);
+}
+/* 리마인더 행 */
 .reminder-row {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-start; /* 다시 상단 정렬로 복구 */
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
 }
@@ -151,17 +172,17 @@ body {
   margin-bottom: 0;
 }
 
+/* 체크박스 위치 정밀 보정 */
 .checkbox-rect {
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--color-icon-brown);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-  margin-top: 3px;
+  margin-top: 2px; /* 텍스트 첫 줄 중앙에 맞추기 위한 마법의 수치 */
   cursor: pointer;
   transition: var(--transition-fast);
 }
-
 .checkbox-rect.done {
   border-color: var(--color-gray-light);
 }
@@ -190,6 +211,22 @@ body {
 
 .text-done {
   color: var(--color-gray-light);
+}
+
+/* 추가 모드 인풋 스타일 매칭 */
+.reminder-inline-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-black);
+  line-height: 1.4;
+  border-bottom: 1px solid var(--color-gray-light);
 }
 
 /* ==========================================

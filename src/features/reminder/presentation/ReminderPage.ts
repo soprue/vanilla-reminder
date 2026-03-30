@@ -9,6 +9,7 @@ import sunlightIcon from '@assets/icons/sunlight.svg';
 import logoutIcon from '@assets/icons/logout.svg';
 import plusIcon from '@assets/icons/plus.svg';
 import cancelIcon from '@assets/icons/cancel.svg';
+import minusSquareIcon from '@assets/icons/minusSquare.svg';
 
 interface Reminder {
   id: number;
@@ -103,10 +104,22 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     const renderSection = (title: string, category: string) => {
       const sectionReminders = reminders.filter((r) => r.category === category);
       const isEditing = addingCategory === category;
+      const isFixed = category === 'Everyday' || category === 'To Do';
 
       return jsx`
         <section class="section-card">
-          <h2 class="section-title">${title}</h2>
+          <div class="section-header">
+            <h2 class="section-title">${title}</h2>
+            ${
+              !isFixed
+                ? jsx`
+                    <button class="section-delete-btn" title="섹션 삭제">
+                      <img src="${minusSquareIcon}" alt="delete" />
+                    </button>
+                  `
+                : ''
+            }
+          </div>
           
           <!-- 기존 리스트 항목들 -->
           ${sectionReminders.map(
