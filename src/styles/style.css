@@ -9,7 +9,7 @@ body {
   box-sizing: border-box;
   background-color: #EFEFEF;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  overflow: hidden;
+  overflow: hidden; /* 전체 스크롤 방지 */
 }
 
 #root {
@@ -17,76 +17,43 @@ body {
 }
 
 .app-container {
-  position: relative;
-  width: 400px;
-  height: 100%;
-  background: #EFEFEF;
-  margin: 0;
-  overflow: hidden;
-}
-
-/* 메인 콘텐츠 스크롤 영역 */
-.main-content {
-  position: absolute;
-  left: 0;
-  top: 0;
+  display: flex;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-bottom: 100px;
+  background: #EFEFEF;
 }
 
-/* 스크롤바 디자인 */
-.main-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.main-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-}
-
-/* 사이드바 */
+/* 사이드바 (완전 고정) */
 .sidemenu {
-  position: absolute;
   width: 60px;
+  flex-shrink: 0;
   height: 100%;
-  left: 0px;
-  top: 0px;
+  background: #FFFFFF;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
   z-index: 100;
 }
 
-.sidemenu-bar {
-  position: absolute;
-  width: 60px;
-  height: 100%;
-  left: 0px;
-  top: 0px;
-  background: #FFFFFF;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
-}
-
 .logo-img {
-  position: absolute;
   width: 25px;
   height: 25px;
-  left: 18px;
-  top: 20px;
+  margin: 20px auto;
   background-color: #D9D9D9;
   border-radius: 4px;
 }
 
 .sidemenu-buttons {
   position: absolute;
-  width: 31px;
-  height: 73px;
-  left: 14px;
   bottom: 13px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
 }
 
 .icon-circle {
-  position: absolute;
   width: 31px;
   height: 31px;
   background: #EFEFEF;
@@ -103,60 +70,112 @@ body {
   object-fit: contain;
 }
 
-/* 섹션 카드 공통 */
-.section-bg {
-  position: absolute;
-  width: 303px;
-  left: 80px;
+/* 리스트 스크롤 영역 (가로/세로 스크롤 허용) */
+.reminder-list-wrapper {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto; /* 리스트 영역 내 가로 스크롤 허용 */
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  scroll-behavior: smooth;
+}
+
+.reminder-list-wrapper::-webkit-scrollbar {
+  width: 4px;
+  height: 4px; /* 가로 스크롤바 높이 추가 */
+}
+
+.reminder-list-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+/* 섹션 카드 (최소 너비 보호) */
+.section-card {
+  width: 100%;
+  min-width: 303px; /* 피그마 사양 유지, 이보다 작아지면 가로 스크롤 발생 */
+  max-width: 340px;
   background: #FFFFFF;
   border-radius: 10px;
+  padding: 24px 25px;
+  box-sizing: border-box;
+  position: relative;
+  margin: 0 auto;
 }
 
 .section-title {
-  position: absolute;
   font-weight: 700;
   font-size: 20px;
   line-height: 24px;
   color: #E74C32;
-  margin: 0;
+  margin: 0 0 20px 0;
 }
 
-/* 텍스트 스타일 공통 */
-.text-base {
-  position: absolute;
-  font-weight: 500;
-  white-space: nowrap;
-  margin: 0;
+/* 리마인더 아이템 행 */
+.reminder-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 30px;
+  position: relative;
 }
 
-.text-main { font-size: 16px; color: #000000; }
-.text-sub { font-size: 14px; color: #000000; }
-.text-time { font-size: 12px; color: #888888; }
-.text-done { color: #DADADA; }
+.reminder-row:last-child {
+  margin-bottom: 0;
+}
 
-/* 체크박스 공통 */
 .checkbox-rect {
-  box-sizing: border-box;
-  position: absolute;
   width: 15px;
   height: 15px;
   border: 1px solid #281817;
   border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
-.checkbox-done { border-color: #DADADA; }
 
-/* 피그마 절대 좌표들 */
-.everyday-bg { height: 230px; top: 20px; }
-.todo-bg { height: 183px; top: 268px; }
-.work-bg { height: 136px; top: 469px; }
+.checkbox-rect.done {
+  border-color: #DADADA;
+}
 
-/* 아이콘 버튼 */
+.item-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.text-main {
+  font-weight: 500;
+  font-size: 16px;
+  color: #000000;
+  margin: 0;
+}
+
+.text-sub {
+  font-weight: 500;
+  font-size: 14px;
+  color: #000000;
+  margin: 0;
+}
+
+.text-time {
+  font-weight: 500;
+  font-size: 12px;
+  color: #888888;
+  margin-top: 4px;
+}
+
+.text-done {
+  color: #DADADA;
+}
+
+/* 플러스 버튼 */
 .plus-btn-container {
-  position: absolute;
   width: 92px;
   height: 92px;
-  left: 187px;
-  top: 633px;
   background: #D9D9D9;
   border-radius: 50%;
   border: none;
@@ -164,8 +183,8 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  margin: 10px auto 40px auto;
+  font-size: 40px;
+  color: #A5A5A5;
+  flex-shrink: 0;
 }
-
-/* 아이콘 특수 위치 */
-.icon-minus { position: absolute; left: 341px; top: 496px; width: 17px; height: 17px; }
-.icon-cancel { position: absolute; left: 109px; top: 93px; width: 7px; height: 7px; }
