@@ -3,13 +3,10 @@ import { Router } from '@core/Router';
 import jsx from '@core/JSX';
 import { authStore } from '@src/shared/store/AuthStore';
 
-// 아이콘 임포트
-import halfmoonIcon from '@assets/icons/halfmoon.svg';
-import sunlightIcon from '@assets/icons/sunlight.svg';
-import logoutIcon from '@assets/icons/logout.svg';
+// 부품 컴포넌트 임포트
+import { Sidebar } from './components/Sidebar';
+import { ReminderSection } from './components/ReminderSection';
 import plusIcon from '@assets/icons/plus.svg';
-import cancelIcon from '@assets/icons/cancel.svg';
-import minusSquareIcon from '@assets/icons/minusSquare.svg';
 
 interface Reminder {
   id: number;
@@ -22,7 +19,7 @@ interface Reminder {
 interface ReminderState {
   isDarkMode: boolean;
   reminders: Reminder[];
-  addingCategory: string | null; // 현재 입력 중인 카테고리 (없으면 null)
+  addingCategory: string | null;
 }
 
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
@@ -44,37 +41,39 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     this.subscribe(authStore);
   }
 
-  // 입력 모드 설정
+  componentDidUpdate() {
+    if (this.state.addingCategory) {
+      const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
+      if (input) input.focus();
+    }
+  }
+
+  toggleReminder(id: number) {
+    this.setState({
+      reminders: this.state.reminders.map((r) =>
+        r.id === id ? { ...r, done: !r.done } : r
+      ),
+    });
+  }
+
   setAddingCategory(category: string | null) {
     this.setState({ addingCategory: category });
   }
 
-  // 리마인더 추가 로직
   addReminder(e: KeyboardEvent, category: string) {
     if (e.key === 'Enter') {
       const input = e.target as HTMLInputElement;
       const text = input.value.trim();
       if (!text) return;
 
-      const newReminder: Reminder = {
-        id: Date.now(),
-        category,
-        text,
-        done: false,
-      };
-
       this.setState({
-        reminders: [...this.state.reminders, newReminder],
+        reminders: [
+          ...this.state.reminders,
+          { id: Date.now(), category, text, done: false },
+        ],
         addingCategory: null,
       });
     }
-  }
-
-  toggleReminder(id: number) {
-    const newReminders = this.state.reminders.map((r) =>
-      r.id === id ? { ...r, done: !r.done } : r
-    );
-    this.setState({ reminders: newReminders });
   }
 
   handleLogout() {
@@ -86,112 +85,50 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     this.setState({ isDarkMode: !this.state.isDarkMode });
   }
 
-  // 렌더링 이후 실행되는 생명주기 메서드
-  componentDidUpdate() {
-    // 입력 모드일 경우 해당 인풋창을 찾아 강제로 포커스를 줍니다.
-    if (this.state.addingCategory) {
-      const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
-      if (input) {
-        input.focus();
-      }
-    }
-  }
-
   render() {
     const { isDarkMode, reminders, addingCategory } = this.state;
 
-    // 섹션 렌더링 함수
-    const renderSection = (title: string, category: string) => {
-      const sectionReminders = reminders.filter((r) => r.category === category);
-      const isEditing = addingCategory === category;
-      const isFixed = category === 'Everyday' || category === 'To Do';
-
-      return jsx`
-        <section class="section-card">
-          <div class="section-header">
-            <h2 class="section-title">${title}</h2>
-            ${
-              !isFixed
-                ? jsx`
-                    <button class="section-delete-btn" title="섹션 삭제">
-                      <img src="${minusSquareIcon}" alt="delete" />
-                    </button>
-                  `
-                : ''
-            }
-          </div>
-          
-          <!-- 기존 리스트 항목들 -->
-          ${sectionReminders.map(
-            (item) => jsx`
-            <div class="reminder-row">
-              <div 
-                class="checkbox-rect ${item.done ? 'done' : ''}" 
-                onclick="${() => this.toggleReminder(item.id)}"
-                style="display: flex; justify-content: center; align-items: center;"
-              >
-                ${item.done ? jsx`<img src="${cancelIcon}" alt="check" style="width: 7px; height: 7px;" />` : ''}
-              </div>
-              <div class="item-content" onclick="${() => this.toggleReminder(item.id)}" style="cursor: pointer;">
-                <p class="text-main ${item.done ? 'text-done' : ''}">${item.text}</p>
-                ${item.time ? jsx`<span class="text-time ${item.done ? 'text-done' : ''}">${item.time}</span>` : ''}
-              </div>
-            </div>
-          `
-          )}
-          
-          <!-- 추가 입력 필드 또는 '눌러서 추가하기' 버튼 -->
-          ${
-            isEditing
-              ? jsx`
-                  <div class="reminder-row">
-                    <div class="checkbox-rect"></div>
-                    <div class="item-content">
-                      <input 
-                        type="text" 
-                        class="reminder-inline-input" 
-                        placeholder="할 일을 입력하세요..."
-                        onkeydown="${(e: KeyboardEvent) => this.addReminder(e, category)}"
-                        onblur="${() => this.setAddingCategory(null)}"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                `
-              : jsx`
-                  <div class="reminder-row" onclick="${() => this.setAddingCategory(category)}" style="cursor: pointer;">
-                    <div class="checkbox-rect done" style="border-style: dashed;"></div>
-                    <div class="item-content">
-                      <p class="text-main text-done">눌러서 추가하기</p>
-                    </div>
-                  </div>
-                `
-          }
-
-        </section>
-      `;
-    };
-
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
-        <aside class="sidemenu">
-          <div class="logo-img"></div>
-          <div class="sidemenu-buttons">
-            <div class="icon-circle" onclick="${this.toggleDarkMode.bind(this)}">
-              <img src="${isDarkMode ? sunlightIcon : halfmoonIcon}" alt="theme" />
-            </div>
-            <div class="icon-circle" onclick="${this.handleLogout.bind(this)}">
-              <img src="${logoutIcon}" alt="logout" />
-            </div>
-          </div>
-        </aside>
+        ${Sidebar({
+          isDarkMode,
+          onToggleTheme: this.toggleDarkMode.bind(this),
+          onLogout: this.handleLogout.bind(this),
+        })}
 
         <div class="reminder-list-wrapper">
-          ${[
-            renderSection('Everyday', 'Everyday'),
-            renderSection('To Do', 'To Do'),
-            renderSection('Work', 'Work')
-          ]}
+          <!-- 섹션들만 모아놓는 컨테이너 (렌더링 안정성 확보) -->
+          <div class="sections-container">
+            ${ReminderSection({
+              title: 'Everyday',
+              category: 'Everyday',
+              items: reminders.filter((r) => r.category === 'Everyday'),
+              isEditing: addingCategory === 'Everyday',
+              onToggleItem: this.toggleReminder.bind(this),
+              onSetEditing: this.setAddingCategory.bind(this),
+              onAddItem: this.addReminder.bind(this),
+            })}
+
+            ${ReminderSection({
+              title: 'To Do',
+              category: 'To Do',
+              items: reminders.filter((r) => r.category === 'To Do'),
+              isEditing: addingCategory === 'To Do',
+              onToggleItem: this.toggleReminder.bind(this),
+              onSetEditing: this.setAddingCategory.bind(this),
+              onAddItem: this.addReminder.bind(this),
+            })}
+
+            ${ReminderSection({
+              title: 'Work',
+              category: 'Work',
+              items: reminders.filter((r) => r.category === 'Work'),
+              isEditing: addingCategory === 'Work',
+              onToggleItem: this.toggleReminder.bind(this),
+              onSetEditing: this.setAddingCategory.bind(this),
+              onAddItem: this.addReminder.bind(this),
+            })}
+          </div>
 
           <button class="plus-btn-container">
             <img src="${plusIcon}" alt="add" />
