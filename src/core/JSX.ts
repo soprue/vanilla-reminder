@@ -147,7 +147,9 @@ export function updateDOM($parent: Node, newNode: any, oldNode: any, index = 0) 
   }
 }
 
-function updateAttributes($el: HTMLElement, oldProps: any, newProps: any) {
+function updateAttributes($target: Node, oldProps: any, newProps: any) {
+  if (!($target instanceof HTMLElement)) return;
+  const $el = $target;
   const allProps = { ...oldProps, ...newProps };
   Object.keys(allProps).forEach(key => {
     if (oldProps[key] !== newProps[key]) {
