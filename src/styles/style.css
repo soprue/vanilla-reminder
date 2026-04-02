@@ -96,12 +96,12 @@ body {
   flex-shrink: 0;
   z-index: 100;
 }
-
+/* 리스트 스크롤 영역 */
 .reminder-list-wrapper {
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: hidden;
   padding: var(--spacing-lg) var(--spacing-md);
   box-sizing: border-box;
   display: flex;
@@ -109,6 +109,14 @@ body {
   gap: var(--spacing-md);
   scroll-behavior: smooth;
 }
+
+/* 섹션들을 묶어주는 컨테이너 */
+.sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md); /* 섹션 카드 사이의 간격 */
+}
+
 
 .reminder-list-wrapper::-webkit-scrollbar {
   width: 4px;
