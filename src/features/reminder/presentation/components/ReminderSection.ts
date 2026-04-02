@@ -53,9 +53,9 @@ export const ReminderSection = ({
                     type="text" 
                     class="reminder-inline-input" 
                     placeholder="할 일을 입력하세요..."
-                    onkeydown="${(e: KeyboardEvent) => onAddItem(e, category)}"
+                    onkeydown="${onAddItem ? (e: KeyboardEvent) => onAddItem(e, category) : null}"
                     onblur="${() => onSetEditing(null)}"
-                    autoFocus
+                    autofocus
                   />
                 </div>
               </div>
