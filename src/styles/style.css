@@ -1,7 +1,466 @@
+/* 
+  Vanilla Reminder Design System v2
+  - Design Tokens (Spacing, Radius, Transitions, Shadows)
+*/
+
+:root {
+  /* 1. Colors */
+  --color-bg: #efefef;
+  --color-white: #ffffff;
+  --color-primary: #e74c32;
+  --color-black: #1a1a1a;
+  --color-gray-dark: #2c2c2c;
+  --color-gray-medium: #888888;
+  --color-gray-light: #dadada;
+  --color-icon-brown: #281817;
+  --color-plus-bg: #d9d9d9;
+  --color-plus-icon: #a5a5a5;
+
+  /* 2. Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+
+  /* 3. Spacing System (8px Scale) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* 4. Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* 5. Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.04);
+  --shadow-sidebar: 0px 4px 4px rgba(0, 0, 0, 0.05);
+
+  /* 6. Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+
+  /* 7. Dimensions */
+  --sidebar-width: 60px;
+  --card-max-width: 340px;
+  --plus-btn-size: 90px;
+}
+
+/* ==========================================
+   1. Base & Reset
+   ========================================== */
+html,
 body {
+  height: 100%;
   margin: 0;
   padding: 0;
+}
+
+body {
   box-sizing: border-box;
-  height: 100vh;
-  background-color: #f0f0f0;
+  background-color: var(--color-bg);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* ==========================================
+   2. Layout Structure
+   ========================================== */
+.app-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+.sidemenu {
+  width: var(--sidebar-width);
+  height: 100%;
+  background: var(--color-white);
+  box-shadow: var(--shadow-sidebar);
+  position: relative;
+  flex-shrink: 0;
+  z-index: 100;
+}
+/* 리스트 스크롤 영역 */
+.reminder-list-wrapper {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--spacing-lg) var(--spacing-md);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  scroll-behavior: smooth;
+}
+
+/* 섹션들을 묶어주는 컨테이너 */
+.sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md); /* 섹션 카드 사이의 간격 */
+}
+
+
+.reminder-list-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.reminder-list-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================
+   3. Common Components
+   ========================================== */
+
+.section-card {
+  width: 100%;
+  min-width: 303px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin: 0; /* 헤더에서 정렬하므로 마진 제거 */
+  letter-spacing: -0.02em;
+}
+
+.section-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.section-delete-btn:hover {
+  transform: scale(1.1);
+}
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.items-container:empty {
+  display: none;
+}
+
+/* 리마인더 행 */
+.reminder-row {
+  display: flex;
+  align-items: flex-start; /* 다시 상단 정렬로 복구 */
+  gap: var(--spacing-sm);
+}
+
+/* 체크박스 위치 정밀 보정 */
+.checkbox-rect {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-icon-brown);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  margin-top: 2px; /* 텍스트 첫 줄 중앙에 맞추기 위한 마법의 수치 */
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.checkbox-rect.done {
+  border-color: var(--color-gray-light);
+}
+
+.item-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.text-main,
+.text-sub {
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  color: var(--color-black);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.text-time {
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-medium);
+  margin-top: var(--spacing-xs);
+}
+
+.text-done {
+  color: var(--color-gray-light);
+}
+
+/* 추가 모드 인풋 스타일 매칭 */
+.reminder-inline-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-black);
+  line-height: 1.4;
+  border-bottom: 1px solid var(--color-gray-light);
+}
+
+/* ==========================================
+   4. Action Buttons
+   ========================================== */
+.plus-btn-container {
+  width: var(--plus-btn-size);
+  height: var(--plus-btn-size);
+  background: var(--color-plus-bg);
+  border-radius: var(--radius-full);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin: var(--spacing-sm) auto var(--spacing-2xl) auto;
+  flex-shrink: 0;
+  transition: var(--transition-normal);
+}
+
+.plus-btn-container:hover {
+  transform: scale(1.05);
+}
+
+.plus-btn-container img {
+  width: 30px;
+  height: 30px;
+}
+
+/* ==========================================
+   5. Sidebar Elements
+   ========================================== */
+.logo-img {
+  width: 25px;
+  height: 25px;
+  margin: var(--spacing-lg) auto;
+  display: block;
+  object-fit: contain;
+}
+
+.sidemenu-buttons {
+  position: absolute;
+  bottom: var(--spacing-lg);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.icon-circle {
+  width: 34px;
+  height: 34px;
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.icon-circle:hover {
+  background: var(--color-gray-light);
+}
+
+/* ==========================================
+   6. LoginPage
+   ========================================== */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: var(--color-bg);
+  padding: var(--spacing-lg); /* 최소 창 크기에서 여백 보장 */
+  box-sizing: border-box;
+}
+
+.login-card {
+  background: var(--color-white);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 320px; /* 340px에서 320px로 축소하여 여유 확보 */
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--color-black);
+  letter-spacing: -0.04em;
+}
+
+.login-card .subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-medium);
+  margin-bottom: var(--spacing-xl);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.login-input {
+  padding: 16px;
+  border: 1.5px solid #F0F0F0;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: #F9F9F9;
+  outline: none;
+  transition: var(--transition-normal);
+  text-align: left;
+}
+
+.login-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-white);
+  box-shadow: 0 0 0 4px rgba(231, 76, 50, 0.1);
+}
+
+.login-button {
+  padding: 16px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: var(--spacing-sm);
+  transition: var(--transition-fast);
+}
+
+.login-button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Divider (OR) */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+  color: var(--color-gray-light);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.divider:not(:empty)::before { margin-right: var(--spacing-md); }
+.divider:not(:empty)::after { margin-left: var(--spacing-md); }
+
+/* Social Login */
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border: 1px solid #EEEEEE;
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.btn-social:hover {
+  background: #FAFAFA;
+  border-color: var(--color-gray-light);
+}
+
+.btn-social img {
+  width: 18px;
+  height: 18px;
+}
+
+.status-msg {
+  margin-top: var(--spacing-xl);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-medium);
+}
+
+.go-main-button {
+  margin-top: var(--spacing-lg);
+  background: none;
+  border: none;
+  color: var(--color-gray-medium);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  opacity: 0.7;
+}
+
+.go-main-button:hover {
+  opacity: 1;
+  color: var(--color-black);
 }

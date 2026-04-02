@@ -20,6 +20,6 @@
     },
     "jsx": "preserve"
   },
-  "include": ["src", "preload.cjs"],
+  "include": ["src", "preload.cjs", "src/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

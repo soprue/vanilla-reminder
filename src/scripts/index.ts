@@ -1,3 +1,4 @@
+import '@styles/style.css';
 import { Router } from '@core/Router';
 import ReminderPage from '@features/reminder/presentation/ReminderPage';
 import LoginPage from '@features/auth/presentation/LoginPage';
