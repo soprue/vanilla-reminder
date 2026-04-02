@@ -271,8 +271,8 @@ body {
   width: 25px;
   height: 25px;
   margin: var(--spacing-lg) auto;
-  background-color: var(--color-plus-bg);
-  border-radius: var(--radius-sm);
+  display: block;
+  object-fit: contain;
 }
 
 .sidemenu-buttons {

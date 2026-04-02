@@ -1,4 +1,5 @@
 import jsx from '@core/JSX';
+import logoIcon from '@assets/logo.webp';
 import halfmoonIcon from '@assets/icons/halfmoon.svg';
 import sunlightIcon from '@assets/icons/sunlight.svg';
 import logoutIcon from '@assets/icons/logout.svg';
@@ -15,7 +16,7 @@ interface SidebarProps {
 export const Sidebar = ({ isDarkMode, onToggleTheme, onLogout }: SidebarProps) => {
   return jsx`
     <aside class="sidemenu">
-      <div class="logo-img"></div>
+      <img src="${logoIcon}" alt="logo" class="logo-img" />
       <div class="sidemenu-buttons">
         <div class="icon-circle" onclick="${onToggleTheme}">
           <img src="${isDarkMode ? sunlightIcon : halfmoonIcon}" alt="theme" />
