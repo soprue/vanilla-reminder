@@ -51,10 +51,19 @@ export function jsx(strings: TemplateStringsArray, ...args: any[]): VNode {
     const props: Record<string, any> = {};
     Array.from(element.attributes).forEach(attr => {
       let val: any = attr.value;
-      const match = val.match(new RegExp(`${REF_PREFIX}([0-9]+)__`));
-      if (match) {
-        const index = parseInt(match[1]);
+      const regex = new RegExp(`${REF_PREFIX}([0-9]+)__`, 'g');
+      
+      const matches = val.match(regex);
+      if (matches && matches.length === 1 && matches[0] === val) {
+        // 단일 치환표만 있는 경우 (함수, 객체 등 그대로 전달)
+        const index = parseInt(matches[0].replace(REF_PREFIX, '').replace('__', ''));
         val = args[index];
+      } else if (matches) {
+        // 문자열 보간이 필요한 경우
+        val = val.replace(regex, (match: string) => {
+          const index = parseInt(match.replace(REF_PREFIX, '').replace('__', ''));
+          return args[index];
+        });
       }
       props[attr.name] = val;
     });
