@@ -51,8 +51,9 @@ export function jsx(strings: TemplateStringsArray, ...args: any[]): VNode {
     const props: Record<string, any> = {};
     Array.from(element.attributes).forEach(attr => {
       let val: any = attr.value;
-      if (val.startsWith(REF_PREFIX)) {
-        const index = parseInt(val.replace(REF_PREFIX, '').replace('__', ''));
+      const match = val.match(new RegExp(`${REF_PREFIX}([0-9]+)__`));
+      if (match) {
+        const index = parseInt(match[1]);
         val = args[index];
       }
       props[attr.name] = val;
