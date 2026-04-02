@@ -168,16 +168,18 @@ body {
 .section-delete-btn:hover {
   transform: scale(1.1);
 }
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
 /* 리마인더 행 */
 .reminder-row {
   display: flex;
   align-items: flex-start; /* 다시 상단 정렬로 복구 */
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-}
-
-.reminder-row:last-child {
-  margin-bottom: 0;
 }
 
 /* 체크박스 위치 정밀 보정 */

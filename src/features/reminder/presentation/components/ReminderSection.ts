@@ -43,7 +43,7 @@ export const ReminderSection = ({
       </div>
       
       <!-- 추가 버튼 영역 -->
-      <div class="section-footer" style="margin-top: 12px;">
+      <div class="section-footer">
         ${isEditing 
           ? jsx`
               <div class="reminder-row">
