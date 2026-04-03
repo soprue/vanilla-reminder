@@ -361,8 +361,8 @@ body {
   justify-content: center;
   align-items: center;
   height: 100%;
+  width: 100%;
   background-color: var(--color-bg);
-  padding: var(--spacing-lg);
   box-sizing: border-box;
 }
 
@@ -373,13 +373,24 @@ body {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 320px;
+  min-height: 520px; /* 카드의 존재감을 위해 최소 높이 살짝 상향 */
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: background-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.login-card:hover {
+  transform: translateY(-4px); /* 살짝 떠오르는 효과로 입체감 부여 */
+  box-shadow: var(--shadow-xl);
 }
 
 .login-card h1 {
   font-size: 28px;
   font-weight: 800;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
   color: var(--color-black);
   letter-spacing: -0.04em;
 }
@@ -394,6 +405,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  flex: 1; /* 가용한 공간을 채우도록 설정 */
+  justify-content: center;
 }
 
 .login-input {

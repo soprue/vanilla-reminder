@@ -1,19 +1,20 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'path';
-import url from 'url';
-import isDev from 'electron-is-dev';
+import { app, BrowserWindow } from "electron";
+import path from "path";
+import url from "url";
+import isDev from "electron-is-dev";
 
 const __dirname = path.resolve();
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 400,
-    height: 700,
+    height: 750,
     minWidth: 400,
     maxWidth: 600,
-    minHeight: 600,
+    minHeight: 650,
+    useContentSize: true, // 타이틀바 제외, 실제 HTML 영역 기준 크기 설정
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
@@ -21,11 +22,11 @@ function createWindow() {
   });
 
   if (isDev) {
-    const devUrl = 'http://localhost:9000';
+    const devUrl = "http://localhost:9000";
 
     // 로드 실패 시 1초 뒤 재시도
-    mainWindow.webContents.on('did-fail-load', () => {
-      console.log('Webpack server not ready yet, retrying in 1s...');
+    mainWindow.webContents.on("did-fail-load", () => {
+      console.log("Webpack server not ready yet, retrying in 1s...");
       setTimeout(() => mainWindow.loadURL(devUrl), 1000);
     });
 
@@ -35,10 +36,10 @@ function createWindow() {
   } else {
     mainWindow.loadURL(
       url.format({
-        pathname: path.join(__dirname, 'index.html'),
-        protocol: 'file:',
+        pathname: path.join(__dirname, "index.html"),
+        protocol: "file:",
         slashes: true,
-      })
+      }),
     );
   }
 }
@@ -46,15 +47,15 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
