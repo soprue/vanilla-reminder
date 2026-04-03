@@ -50,14 +50,15 @@ export class Component<
    * @param eventType 이벤트 종류 (click, input, keydown 등)
    * @param selector 대상 요소 선택자
    * @param callback 실행할 콜백 함수
+   * @param useCapture 캡처링 사용 여부 (기본값 false)
    */
-  addEvent(eventType: string, selector: string, callback: Function) {
+  addEvent(eventType: string, selector: string, callback: Function, useCapture = false) {
     this.target.addEventListener(eventType, (event) => {
       const target = event.target as HTMLElement;
       if (target.closest(selector)) {
         callback(event);
       }
-    });
+    }, useCapture);
   }
 
   /**
