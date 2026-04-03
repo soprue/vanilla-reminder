@@ -1,15 +1,16 @@
 import jsx from '@core/JSX';
 import { ReminderItem } from './ReminderItem';
 import minusSquareIcon from '@assets/icons/minusSquare.svg';
+import { Category } from '@src/shared/constants/category';
 
 interface ReminderSectionProps {
   title: string;
-  category: string;
+  category: Category;
   items: any[];
   isEditing: boolean;
   onToggleItem: (id: number) => void;
-  onSetEditing: (category: string | null) => void;
-  onAddItem: (e: KeyboardEvent, category: string) => void;
+  onSetEditing: (category: Category | null) => void;
+  onAddItem: (e: KeyboardEvent, category: Category) => void;
 }
 
 /**
@@ -24,7 +25,7 @@ export const ReminderSection = ({
   onSetEditing,
   onAddItem
 }: ReminderSectionProps) => {
-  const isFixed = category === 'Everyday' || category === 'To Do';
+  const isFixed = category === Category.EVERYDAY || category === Category.TODO;
 
   return jsx`
     <section class="section-card">

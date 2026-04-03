@@ -6,8 +6,6 @@ import logoutIcon from '@assets/icons/logout.svg';
 
 interface SidebarProps {
   isDarkMode: boolean;
-  onToggleTheme: () => void;
-  onLogout: () => void;
 }
 
 /**
