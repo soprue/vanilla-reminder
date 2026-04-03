@@ -15,6 +15,7 @@
   --color-icon-brown: #281817;
   --color-plus-bg: #d9d9d9;
   --color-plus-icon: #a5a5a5;
+  --color-icon-bg: #efefef; /* 라이트모드 기본 배경색 */
 
   /* 2. Typography */
   --font-size-xs: 12px;
@@ -52,6 +53,21 @@
   --sidebar-width: 60px;
   --card-max-width: 340px;
   --plus-btn-size: 90px;
+}
+
+/* 다크모드 색상 정의 */
+.dark-mode {
+  --color-bg: #000000;
+  --color-white: #151515;
+  --color-primary: #e74c32;
+  --color-black: #ffffff;
+  --color-gray-dark: #efefef;
+  --color-gray-medium: #888888;
+  --color-gray-light: #454545;
+  --color-icon-brown: #ffffff;
+  --color-plus-bg: #343434;
+  --color-plus-icon: #272727;
+  --color-icon-bg: #2c2c2c; /* 다크모드 버튼 배경색 */
 }
 
 /* ==========================================
@@ -217,15 +233,15 @@ body {
   line-height: 1.4;
 }
 
+.text-done {
+  color: var(--color-gray-light);
+}
+
 .text-time {
   font-weight: 400;
   font-size: var(--font-size-sm);
   color: var(--color-gray-medium);
   margin-top: var(--spacing-xs);
-}
-
-.text-done {
-  color: var(--color-gray-light);
 }
 
 /* 추가 모드 인풋 스타일 매칭 */
@@ -294,9 +310,9 @@ body {
 }
 
 .icon-circle {
-  width: 34px;
-  height: 34px;
-  background: var(--color-bg);
+  width: 31px;
+  height: 31px;
+  background: var(--color-icon-bg);
   border-radius: var(--radius-full);
   display: flex;
   justify-content: center;
@@ -307,6 +323,10 @@ body {
 
 .icon-circle:hover {
   background: var(--color-gray-light);
+}
+
+.dark-mode .icon-circle img {
+  filter: brightness(0) invert(1);
 }
 
 /* ==========================================
