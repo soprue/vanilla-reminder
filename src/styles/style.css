@@ -295,6 +295,10 @@ body {
   height: 30px;
 }
 
+.dark-mode .plus-btn-container img {
+  filter: brightness(0) invert(15%); /* #272727 색상과 일치 */
+}
+
 /* ==========================================
    5. Sidebar Elements
    ========================================== */
