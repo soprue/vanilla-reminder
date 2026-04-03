@@ -4,7 +4,7 @@
 */
 
 :root {
-  /* 1. Colors */
+  /* 1. Colors - Base */
   --color-bg: #efefef;
   --color-white: #ffffff;
   --color-primary: #e74c32;
@@ -13,18 +13,25 @@
   --color-gray-medium: #888888;
   --color-gray-light: #dadada;
   --color-icon-brown: #281817;
+  
+  /* 2. Component Specific Colors */
   --color-plus-bg: #d9d9d9;
   --color-plus-icon: #a5a5a5;
-  --color-icon-bg: #efefef; /* 라이트모드 기본 배경색 */
+  --color-icon-bg: #efefef;
+  
+  /* 3. Filters (Icon Theming) */
+  --filter-plus-icon: none;
+  --filter-done-icon: none;
+  --filter-sidebar-icon: none;
 
-  /* 2. Typography */
+  /* 4. Typography */
   --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-base: 15px;
   --font-size-lg: 18px;
   --font-size-xl: 20px;
 
-  /* 3. Spacing System (8px Scale) */
+  /* 5. Spacing System (8px Scale) */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -32,49 +39,53 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  /* 4. Border Radius */
+  /* 6. Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* 5. Shadows */
+  /* 7. Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.04);
   --shadow-sidebar: 0px 4px 4px rgba(0, 0, 0, 0.05);
 
-  /* 6. Transitions */
+  /* 8. Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
 
-  /* 7. Dimensions */
+  /* 9. Dimensions */
   --sidebar-width: 60px;
   --card-max-width: 340px;
-  --plus-btn-size: 90px;
+  --plus-btn-size: 92px;
 }
 
-/* 다크모드 색상 정의 */
+/* 다크모드 색상 및 필터 오버라이드 */
 .dark-mode {
   --color-bg: #000000;
   --color-white: #151515;
-  --color-primary: #e74c32;
   --color-black: #ffffff;
   --color-gray-dark: #efefef;
   --color-gray-medium: #888888;
   --color-gray-light: #454545;
   --color-icon-brown: #ffffff;
+  
   --color-plus-bg: #343434;
   --color-plus-icon: #272727;
-  --color-icon-bg: #2c2c2c; /* 다크모드 버튼 배경색 */
+  --color-icon-bg: #2c2c2c;
+
+  /* 필터 값은 디자인 스펙에 맞춘 정밀 계산값 */
+  --filter-plus-icon: brightness(0) invert(15%); /* #272727 */
+  --filter-done-icon: brightness(0) invert(27%); /* #454545 */
+  --filter-sidebar-icon: brightness(0) invert(1); /* White */
 }
 
 /* ==========================================
    1. Base & Reset
    ========================================== */
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -83,10 +94,11 @@ body {
 body {
   box-sizing: border-box;
   background-color: var(--color-bg);
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
-    sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  color: var(--color-black);
+  transition: background-color var(--transition-normal);
 }
 
 #root {
@@ -111,13 +123,17 @@ body {
   position: relative;
   flex-shrink: 0;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color var(--transition-normal);
 }
+
 /* 리스트 스크롤 영역 */
 .reminder-list-wrapper {
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  overflow-x: hidden;
   padding: var(--spacing-lg) var(--spacing-md);
   box-sizing: border-box;
   display: flex;
@@ -126,13 +142,11 @@ body {
   scroll-behavior: smooth;
 }
 
-/* 섹션들을 묶어주는 컨테이너 */
 .sections-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md); /* 섹션 카드 사이의 간격 */
+  gap: var(--spacing-md);
 }
-
 
 .reminder-list-wrapper::-webkit-scrollbar {
   width: 4px;
@@ -144,9 +158,8 @@ body {
 }
 
 /* ==========================================
-   3. Common Components
+   3. Common Components (Cards, Rows)
    ========================================== */
-
 .section-card {
   width: 100%;
   min-width: 303px;
@@ -157,6 +170,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  transition: background-color var(--transition-normal);
 }
 
 .section-header {
@@ -169,7 +183,7 @@ body {
   font-weight: 700;
   font-size: var(--font-size-xl);
   color: var(--color-primary);
-  margin: 0; /* 헤더에서 정렬하므로 마진 제거 */
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
@@ -186,6 +200,7 @@ body {
 .section-delete-btn:hover {
   transform: scale(1.1);
 }
+
 .items-container {
   display: flex;
   flex-direction: column;
@@ -199,27 +214,30 @@ body {
 /* 리마인더 행 */
 .reminder-row {
   display: flex;
-  align-items: flex-start; /* 다시 상단 정렬로 복구 */
+  align-items: flex-start;
   gap: var(--spacing-sm);
 }
 
-/* 체크박스 위치 정밀 보정 */
 .checkbox-rect {
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--color-icon-brown);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-  margin-top: 2px; /* 텍스트 첫 줄 중앙에 맞추기 위한 마법의 수치 */
+  margin-top: 2px;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   transition: var(--transition-fast);
 }
+
 .checkbox-rect.done {
   border-color: var(--color-gray-light);
 }
 
-.dark-mode .checkbox-rect.done img {
-  filter: brightness(0) invert(27%); /* #454545 색상과 정확히 일치 */
+.checkbox-rect.done img {
+  filter: var(--filter-done-icon);
 }
 
 .item-content {
@@ -228,17 +246,14 @@ body {
   flex: 1;
 }
 
-.text-main,
-.text-sub {
+/* 텍스트 상태 스타일 */
+.text-main {
   font-weight: 500;
   font-size: var(--font-size-base);
-  color: var(--color-black);
+  color: var(--color-black); /* 테마에 따른 색상 명시 */
   margin: 0;
   line-height: 1.4;
-}
-
-.text-done {
-  color: var(--color-gray-light) !important;
+  transition: color var(--transition-fast);
 }
 
 .text-time {
@@ -246,13 +261,15 @@ body {
   font-size: var(--font-size-sm);
   color: var(--color-gray-medium);
   margin-top: var(--spacing-xs);
+  transition: color var(--transition-fast);
 }
 
-.text-time.text-done {
-  color: var(--color-gray-light) !important;
+/* 완료 상태 통합 클래스 */
+.text-done {
+  color: var(--color-gray-light);
 }
 
-/* 추가 모드 인풋 스타일 매칭 */
+/* 추가 모드 인풋 스타일 */
 .reminder-inline-input {
   border: none;
   outline: none;
@@ -283,7 +300,7 @@ body {
   cursor: pointer;
   margin: var(--spacing-sm) auto var(--spacing-2xl) auto;
   flex-shrink: 0;
-  transition: var(--transition-normal);
+  transition: transform var(--transition-normal), background-color var(--transition-normal);
 }
 
 .plus-btn-container:hover {
@@ -293,10 +310,7 @@ body {
 .plus-btn-container img {
   width: 30px;
   height: 30px;
-}
-
-.dark-mode .plus-btn-container img {
-  filter: brightness(0) invert(15%); /* #272727 색상과 일치 */
+  filter: var(--filter-plus-icon);
 }
 
 /* ==========================================
@@ -313,8 +327,6 @@ body {
 .sidemenu-buttons {
   position: absolute;
   bottom: var(--spacing-lg);
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -330,15 +342,15 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: background-color var(--transition-fast);
 }
 
 .icon-circle:hover {
   background: var(--color-gray-light);
 }
 
-.dark-mode .icon-circle img {
-  filter: brightness(0) invert(1);
+.icon-circle img {
+  filter: var(--filter-sidebar-icon);
 }
 
 /* ==========================================
@@ -350,7 +362,7 @@ body {
   align-items: center;
   height: 100%;
   background-color: var(--color-bg);
-  padding: var(--spacing-lg); /* 최소 창 크기에서 여백 보장 */
+  padding: var(--spacing-lg);
   box-sizing: border-box;
 }
 
@@ -360,7 +372,7 @@ body {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 320px; /* 340px에서 320px로 축소하여 여유 확보 */
+  max-width: 320px;
   text-align: center;
 }
 
@@ -432,8 +444,7 @@ body {
   letter-spacing: 0.1em;
 }
 
-.divider::before,
-.divider::after {
+.divider::before, .divider::after {
   content: '';
   flex: 1;
   border-bottom: 1px solid #EEEEEE;
@@ -481,6 +492,7 @@ body {
   color: var(--color-gray-medium);
 }
 
+/* Utility Classes */
 .go-main-button {
   margin-top: var(--spacing-lg);
   background: none;
