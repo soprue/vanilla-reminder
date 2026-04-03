@@ -31,10 +31,10 @@ export default class LoginPage extends Component<ComponentProps> {
   }
 
   render() {
-    const { isLoggedIn, user } = authStore.getState();
+    const { isLoggedIn, user, isDarkMode } = authStore.getState();
 
     return jsx`
-      <div class="login-wrapper">
+      <div class="login-wrapper ${isDarkMode ? 'dark-mode' : ''}">
         <div class="login-card">
           <h1>Vanilla Reminder</h1>
           <p class="subtitle">매일의 기록을 더 가볍게</p>

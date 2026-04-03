@@ -398,10 +398,11 @@ body {
 
 .login-input {
   padding: 16px;
-  border: 1.5px solid #F0F0F0;
+  border: 1.5px solid var(--color-gray-light);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  background: #F9F9F9;
+  background: var(--color-bg);
+  color: var(--color-black);
   outline: none;
   transition: var(--transition-normal);
   text-align: left;
@@ -437,7 +438,7 @@ body {
   align-items: center;
   text-align: center;
   margin: var(--spacing-xl) 0;
-  color: var(--color-gray-light);
+  color: var(--color-gray-medium);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
@@ -447,7 +448,7 @@ body {
 .divider::before, .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #EEEEEE;
+  border-bottom: 1px solid var(--color-gray-light);
 }
 
 .divider:not(:empty)::before { margin-right: var(--spacing-md); }
@@ -471,14 +472,14 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
-  border: 1px solid #EEEEEE;
+  border: 1px solid var(--color-gray-light);
   background: var(--color-white);
   color: var(--color-black);
 }
 
 .btn-social:hover {
-  background: #FAFAFA;
-  border-color: var(--color-gray-light);
+  background: var(--color-bg);
+  border-color: var(--color-gray-medium);
 }
 
 .btn-social img {

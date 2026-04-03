@@ -17,9 +17,8 @@ interface Reminder {
 }
 
 interface ReminderState {
-  isDarkMode: boolean;
-  reminders: Reminder[];
   addingCategory: string | null;
+  reminders: Reminder[];
 }
 
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
@@ -27,7 +26,6 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
   init() {
     this.state = {
-      isDarkMode: false,
       addingCategory: null,
       reminders: [
         { id: 1, category: 'Everyday', text: '약 먹기', time: '2:00 PM', done: true },
@@ -82,11 +80,12 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   toggleDarkMode() {
-    this.setState({ isDarkMode: !this.state.isDarkMode });
+    authStore.toggleDarkMode();
   }
 
   render() {
-    const { isDarkMode, reminders, addingCategory } = this.state;
+    const { reminders, addingCategory } = this.state;
+    const { isDarkMode } = authStore.getState();
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
