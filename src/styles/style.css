@@ -218,6 +218,10 @@ body {
   border-color: var(--color-gray-light);
 }
 
+.dark-mode .checkbox-rect.done img {
+  filter: brightness(0) invert(27%); /* #454545 색상과 정확히 일치 */
+}
+
 .item-content {
   display: flex;
   flex-direction: column;
@@ -234,7 +238,7 @@ body {
 }
 
 .text-done {
-  color: var(--color-gray-light);
+  color: var(--color-gray-light) !important;
 }
 
 .text-time {
@@ -242,6 +246,10 @@ body {
   font-size: var(--font-size-sm);
   color: var(--color-gray-medium);
   margin-top: var(--spacing-xs);
+}
+
+.text-time.text-done {
+  color: var(--color-gray-light) !important;
 }
 
 /* 추가 모드 인풋 스타일 매칭 */
