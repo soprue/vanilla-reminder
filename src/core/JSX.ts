@@ -29,19 +29,21 @@ export function jsx(strings: TemplateStringsArray, ...args: any[]): VNode {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, 'text/html');
 
-  const domToVNode = (node: Node): any => {
+  const domToVNode = (node: Node): VNodeChild => {
     if (node.nodeType === Node.TEXT_NODE) {
       const content = node.nodeValue || '';
       if (!content.includes(REF_PREFIX)) return content;
 
       const regex = new RegExp(`(${REF_PREFIX}[0-9]+__)`, 'g');
-      return content.split(regex).map(part => {
+      const parts = content.split(regex).map(part => {
         if (part.startsWith(REF_PREFIX)) {
           const index = parseInt(part.replace(REF_PREFIX, '').replace('__', ''));
           return args[index];
         }
         return part;
       }).filter(p => p !== '');
+      
+      return parts.length === 1 ? parts[0] : h(Fragment, null, ...parts);
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) return null;
@@ -69,7 +71,6 @@ export function jsx(strings: TemplateStringsArray, ...args: any[]): VNode {
     return h(element.tagName.toLowerCase(), props, ...children);
   };
 
-  // 공백만 있는 텍스트 노드는 제거하여 단일 루트 유지를 보장함
   const restoredNodes = Array.from(doc.body.childNodes)
     .map(domToVNode)
     .flat()
@@ -86,18 +87,19 @@ export function jsx(strings: TemplateStringsArray, ...args: any[]): VNode {
 
 export default jsx;
 
-export function createDOM(vNode: any): Node {
+export function createDOM(vNode: VNodeChild): Node {
   if (typeof vNode === 'string' || typeof vNode === 'number') return document.createTextNode(String(vNode));
   if (!vNode || typeof vNode === 'boolean') return document.createTextNode('');
   
-  if (vNode.type === Fragment) {
+  const node = vNode as VNode;
+  if (node.type === Fragment) {
     const frag = document.createDocumentFragment();
-    vNode.children.forEach((c: any) => frag.appendChild(createDOM(c)));
+    node.children.forEach((c) => frag.appendChild(createDOM(c)));
     return frag;
   }
 
-  const $el = document.createElement(vNode.type);
-  Object.entries(vNode.props || {}).forEach(([key, value]) => {
+  const $el = document.createElement(node.type as string);
+  Object.entries(node.props || {}).forEach(([key, value]) => {
     if (key.startsWith('on') && typeof value === 'function') {
       $el.addEventListener(key.toLowerCase().substring(2), value as EventListener);
     } else {
@@ -105,11 +107,12 @@ export function createDOM(vNode: any): Node {
     }
   });
 
-  vNode.children.forEach((c: any) => $el.appendChild(createDOM(c)));
+  node.children.forEach((c) => $el.appendChild(createDOM(c)));
   return $el;
 }
 
-export function updateDOM($parent: Node, newNode: any, oldNode: any, index = 0) {
+export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChild, index = 0) {
+  if (!$parent) return;
   const $child = $parent.childNodes[index];
 
   if (oldNode === undefined) {
@@ -123,33 +126,36 @@ export function updateDOM($parent: Node, newNode: any, oldNode: any, index = 0) 
   }
 
   if (isChanged(newNode, oldNode)) {
-    $parent.replaceChild(createDOM(newNode), $child);
+    if ($child) {
+      $parent.replaceChild(createDOM(newNode), $child);
+    } else {
+      $parent.appendChild(createDOM(newNode));
+    }
     return;
   }
 
-  if (typeof newNode === 'object') {
-    // Fragment와 일반 요소를 구분하여 자식 업데이트 대상 결정
-    const isFrag = newNode.type === Fragment;
+  if (typeof newNode === 'object' && newNode !== null && typeof oldNode === 'object' && oldNode !== null) {
+    const n = newNode as VNode;
+    const o = oldNode as VNode;
+    
+    const isFrag = n.type === Fragment;
     const $target = isFrag ? $parent : ($child as HTMLElement);
 
-    if (!isFrag) {
-      updateAttributes($target, oldNode.props, newNode.props);
+    if (!isFrag && $target instanceof HTMLElement) {
+      updateAttributes($target, o.props, n.props);
     }
 
-    const newChildren = newNode.children || [];
-    const oldChildren = oldNode.children || [];
+    const newChildren = n.children || [];
+    const oldChildren = o.children || [];
     const max = Math.max(newChildren.length, oldChildren.length);
     
     for (let i = 0; i < max; i++) {
-      // Fragment인 경우 인덱스 계산이 복잡할 수 있으나, 현재 구조에서는 단일 루트를 선호함
       updateDOM($target, newChildren[i], oldChildren[i], i);
     }
   }
 }
 
-function updateAttributes($target: Node, oldProps: any, newProps: any) {
-  if (!($target instanceof HTMLElement)) return;
-  const $el = $target;
+function updateAttributes($el: HTMLElement, oldProps: Record<string, any>, newProps: Record<string, any>) {
   const allProps = { ...oldProps, ...newProps };
   Object.keys(allProps).forEach(key => {
     if (oldProps[key] !== newProps[key]) {
@@ -166,8 +172,9 @@ function updateAttributes($target: Node, oldProps: any, newProps: any) {
   });
 }
 
-function isChanged(n1: any, n2: any) {
+function isChanged(n1: VNodeChild, n2: VNodeChild) {
   if (typeof n1 !== typeof n2) return true;
   if (typeof n1 === 'string' || typeof n1 === 'number') return n1 !== n2;
-  return n1.type !== n2.type;
+  if (!n1 || !n2) return n1 !== n2;
+  return (n1 as VNode).type !== (n2 as VNode).type;
 }
