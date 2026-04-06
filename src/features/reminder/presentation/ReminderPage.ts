@@ -43,6 +43,36 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   setEvent() {
     this.addEvent('click', '.theme-toggle-btn', this.toggleDarkMode.bind(this));
     this.addEvent('click', '.logout-btn', this.handleLogout.bind(this));
+    
+    // 투두 완료 토글 (이벤트 위임)
+    this.addEvent('click', '.toggle-reminder', (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('.toggle-reminder') as HTMLElement;
+      const id = Number(target.dataset.id);
+      this.toggleReminder(id);
+    });
+
+    // 눌러서 추가하기 버튼
+    this.addEvent('click', '.start-adding-btn', (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('.start-adding-btn') as HTMLElement;
+      const category = target.dataset.category as Category;
+      this.setAddingCategory(category);
+    });
+
+    // 하단 큰 플러스 버튼
+    this.addEvent('click', '.plus-btn-container', () => {
+      this.setAddingCategory(Category.EVERYDAY);
+    });
+
+    // 인라인 입력창 이벤트
+    this.addEvent('keydown', '.reminder-inline-input', (e: KeyboardEvent) => {
+      const target = e.target as HTMLInputElement;
+      const category = target.dataset.category as Category;
+      this.addReminder(e, category);
+    });
+
+    this.addEvent('focusout', '.reminder-inline-input', () => {
+      this.setAddingCategory(null);
+    });
   }
 
   componentDidUpdate() {
@@ -53,6 +83,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   toggleReminder(id: number) {
+    console.log('[ReminderPage] toggleReminder called with ID:', id);
+    if (isNaN(id)) {
+      console.error('[ReminderPage] Error: ID is NaN!');
+      return;
+    }
     this.setState({
       reminders: this.state.reminders.map((r) =>
         r.id === id ? { ...r, done: !r.done } : r
@@ -61,6 +96,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   setAddingCategory(category: Category | null) {
+    console.log('[ReminderPage] setAddingCategory called with:', category);
     this.setState({ addingCategory: category });
   }
 

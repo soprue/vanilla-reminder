@@ -12,11 +12,27 @@ export type VNodeChild = VNode | string | number | boolean | null | undefined;
 
 const REF_PREFIX = '__VAL_REF_';
 
+/**
+ * 가상 DOM 트리를 평면화하여 Fragment를 제거하고 실제 DOM 인덱스와 일치시킵니다.
+ */
+function flatten(children: any[]): any[] {
+  return children.reduce((acc, child) => {
+    if (Array.isArray(child)) {
+      acc.push(...flatten(child));
+    } else if (child && typeof child === 'object' && child.type === Fragment) {
+      acc.push(...flatten(child.children));
+    } else if (child !== null && child !== undefined && child !== false && child !== '') {
+      acc.push(child);
+    }
+    return acc;
+  }, []);
+}
+
 export function h(type: VNodeType, props: Record<string, any> | null, ...children: any[]): VNode {
   return {
     type,
     props: props || {},
-    children: children.flat().filter(c => c !== null && c !== undefined && c !== false),
+    children: flatten(children),
   };
 }
 
@@ -113,7 +129,6 @@ export function createDOM(vNode: VNodeChild): Node {
 
 export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChild, index = 0) {
   if (!$parent) return;
-  const $child = $parent.childNodes[index];
 
   if (oldNode === undefined) {
     if (newNode) $parent.appendChild(createDOM(newNode));
@@ -121,11 +136,13 @@ export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChil
   }
 
   if (!newNode) {
+    const $child = $parent.childNodes[index];
     if ($child) $parent.removeChild($child);
     return;
   }
 
   if (isChanged(newNode, oldNode)) {
+    const $child = $parent.childNodes[index];
     if ($child) {
       $parent.replaceChild(createDOM(newNode), $child);
     } else {
@@ -138,11 +155,10 @@ export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChil
     const n = newNode as VNode;
     const o = oldNode as VNode;
     
-    const isFrag = n.type === Fragment;
-    const $target = isFrag ? $parent : ($child as HTMLElement);
-
-    if (!isFrag && $target instanceof HTMLElement) {
-      updateAttributes($target, o.props, n.props);
+    // h 함수와 jsx에서 이미 flatten을 수행하므로 Fragment 타입은 여기서 일반 노드처럼 처리
+    const $child = $parent.childNodes[index] as HTMLElement;
+    if ($child instanceof HTMLElement) {
+      updateAttributes($child, o.props, n.props);
     }
 
     const newChildren = n.children || [];
@@ -150,7 +166,7 @@ export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChil
     const max = Math.max(newChildren.length, oldChildren.length);
     
     for (let i = 0; i < max; i++) {
-      updateDOM($target, newChildren[i], oldChildren[i], i);
+      updateDOM($child, newChildren[i], oldChildren[i], i);
     }
   }
 }
@@ -158,15 +174,18 @@ export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChil
 function updateAttributes($el: HTMLElement, oldProps: Record<string, any>, newProps: Record<string, any>) {
   const allProps = { ...oldProps, ...newProps };
   Object.keys(allProps).forEach(key => {
-    if (oldProps[key] !== newProps[key]) {
+    const oldValue = oldProps[key];
+    const newValue = newProps[key];
+
+    if (oldValue !== newValue) {
       const name = key.toLowerCase().startsWith('on') ? key.toLowerCase().substring(2) : key;
       if (key.toLowerCase().startsWith('on')) {
-        if (oldProps[key]) $el.removeEventListener(name, oldProps[key]);
-        if (newProps[key]) $el.addEventListener(name, newProps[key]);
-      } else if (!(key in newProps)) {
+        if (typeof oldValue === 'function') $el.removeEventListener(name, oldValue as EventListener);
+        if (typeof newValue === 'function') $el.addEventListener(name, newValue as EventListener);
+      } else if (newValue === undefined || newValue === null || newValue === false) {
         $el.removeAttribute(key === 'className' ? 'class' : key);
       } else {
-        $el.setAttribute(key === 'className' ? 'class' : key, String(newProps[key]));
+        $el.setAttribute(key === 'className' ? 'class' : key, String(newValue));
       }
     }
   });
@@ -174,7 +193,11 @@ function updateAttributes($el: HTMLElement, oldProps: Record<string, any>, newPr
 
 function isChanged(n1: VNodeChild, n2: VNodeChild) {
   if (typeof n1 !== typeof n2) return true;
-  if (typeof n1 === 'string' || typeof n1 === 'number') return n1 !== n2;
+  if (typeof n1 === 'string' || typeof n1 === 'number') return String(n1) !== String(n2);
   if (!n1 || !n2) return n1 !== n2;
-  return (n1 as VNode).type !== (n2 as VNode).type;
+  
+  const v1 = n1 as VNode;
+  const v2 = n2 as VNode;
+  
+  return v1.type !== v2.type;
 }

@@ -20,6 +20,7 @@ export class Component<
   protected state: S;
   private oldVNode: VNodeChild;
   private unsubs: (() => void)[] = [];
+  private eventHandlers: Array<{ eventType: string; handler: (event: Event) => void; useCapture: boolean }> = [];
 
   constructor(target: HTMLElement, props: P) {
     this.target = target;
@@ -53,12 +54,15 @@ export class Component<
    * @param useCapture 캡처링 사용 여부 (기본값 false)
    */
   addEvent(eventType: string, selector: string, callback: Function, useCapture = false) {
-    this.target.addEventListener(eventType, (event) => {
+    const handler = (event: Event) => {
       const target = event.target as HTMLElement;
-      if (target.closest(selector)) {
+      const closest = target.closest(selector);
+      if (closest) {
         callback(event);
       }
-    }, useCapture);
+    };
+    this.target.addEventListener(eventType, handler, useCapture);
+    this.eventHandlers.push({ eventType, handler, useCapture });
   }
 
   /**
@@ -100,6 +104,13 @@ export class Component<
     this.componentWillUnmount();
     this.unsubs.forEach((unsub) => unsub());
     this.unsubs = [];
+    
+    // 등록된 모든 이벤트 핸들러 제거
+    this.eventHandlers.forEach(({ eventType, handler, useCapture }) => {
+      this.target.removeEventListener(eventType, handler, useCapture);
+    });
+    this.eventHandlers = [];
+
     this.target.innerHTML = '';
   }
 
