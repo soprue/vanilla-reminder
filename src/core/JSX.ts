@@ -105,7 +105,7 @@ export default jsx;
 
 export function createDOM(vNode: VNodeChild): Node {
   if (typeof vNode === 'string' || typeof vNode === 'number') return document.createTextNode(String(vNode));
-  if (!vNode || typeof vNode === 'boolean') return document.createTextNode('');
+  if (!vNode || typeof vNode === 'boolean') return document.createComment('v-node-placeholder');
   
   const node = vNode as VNode;
   if (node.type === Fragment) {
