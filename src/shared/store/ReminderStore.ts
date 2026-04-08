@@ -39,6 +39,33 @@ class ReminderStore extends Store<ReminderState> {
   }
 
   /**
+   * 새로운 섹션을 추가합니다.
+   */
+  addSection(title: string) {
+    const newSection: ReminderSectionData = {
+      id: `SECTION_${Date.now()}`,
+      title,
+      isFixed: false,
+      items: [],
+    };
+    this.setState({ sections: [...this.state.sections, newSection] });
+  }
+
+  /**
+   * 특정 항목을 삭제합니다.
+   */
+  deleteReminder(sectionId: string, reminderId: number) {
+    const nextSections = this.state.sections.map((section) => {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        items: section.items.filter((item) => item.id !== reminderId),
+      };
+    });
+    this.setState({ sections: nextSections });
+  }
+
+  /**
    * 특정 항목의 완료 상태를 토글합니다.
    */
   toggleReminder(sectionId: string, reminderId: number) {
@@ -57,14 +84,14 @@ class ReminderStore extends Store<ReminderState> {
   /**
    * 섹션에 새로운 항목을 추가합니다.
    */
-  addReminder(sectionId: string, text: string) {
+  addReminder(sectionId: string, text: string, time?: string) {
     const nextSections = this.state.sections.map((section) => {
       if (section.id !== sectionId) return section;
       return {
         ...section,
         items: [
           ...section.items,
-          { id: Date.now(), text, done: false },
+          { id: Date.now(), text, time, done: false },
         ],
       };
     });
