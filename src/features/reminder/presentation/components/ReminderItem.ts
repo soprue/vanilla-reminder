@@ -9,7 +9,7 @@ interface ReminderItemProps {
     done: boolean;
   };
   onToggle: (id: number) => void;
-  onDelete: (id: number) => void; // 삭제 핸들러 추가
+  onDelete: (id: number) => void;
 }
 
 /**
@@ -17,16 +17,16 @@ interface ReminderItemProps {
  */
 export const ReminderItem = ({ item, onToggle, onDelete }: ReminderItemProps) => {
   return jsx`
-    <div class="reminder-row" style="position: relative; group">
+    <div class="reminder-row">
       <div 
         class="checkbox-rect ${item.done ? 'done' : ''}" 
         onclick="${(e: MouseEvent) => {
           e.stopPropagation();
           onToggle(item.id);
         }}"
-        style="display: flex; justify-content: center; align-items: center;"
       >
-        ${item.done ? jsx`<img src="${cancelIcon}" alt="check" style="width: 7px; height: 7px;" />` : ''}
+        <!-- img 대신 div + mask-image 방식 사용 -->
+        ${item.done ? jsx`<div class="icon-cancel-mask"></div>` : ''}
       </div>
       
       <div class="item-content" onclick="${() => onToggle(item.id)}" style="cursor: pointer; flex: 1;">
@@ -34,7 +34,6 @@ export const ReminderItem = ({ item, onToggle, onDelete }: ReminderItemProps) =>
         ${item.time ? jsx`<span class="text-time ${item.done ? 'text-done' : ''}">${item.time}</span>` : ''}
       </div>
 
-      <!-- 삭제 버튼: 호버 시에만 나타나도록 CSS 클래스 적용 -->
       <button 
         class="delete-item-btn"
         onclick="${(e: MouseEvent) => {
