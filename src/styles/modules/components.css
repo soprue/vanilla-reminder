@@ -12,13 +12,15 @@
   margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
   transition: background-color var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
 }
 
 .section-title {
@@ -36,20 +38,30 @@
   padding: 0;
   display: flex;
   align-items: center;
+  transition: transform 0.2s;
 }
 
+.section-delete-btn:hover {
+  transform: scale(1.1);
+}
+
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.items-container:empty {
+  display: none;
+}
+
+/* 리마인더 행 */
 .reminder-row {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
 }
 
-.reminder-row:last-child {
-  margin-bottom: 0;
-}
-
-/* Checkbox */
 .checkbox-rect {
   width: 16px;
   height: 16px;
@@ -61,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: border-color var(--transition-fast);
+  transition: var(--transition-fast);
 }
 
 .checkbox-rect.done {
@@ -71,7 +83,7 @@
 .icon-cancel-mask {
   width: 7px;
   height: 7px;
-  background-color: var(--color-gray-light); /* 완료 상태의 흐린 회색 적용 */
+  background-color: var(--color-gray-light);
   mask-image: url('../../assets/icons/cancel.svg');
   mask-repeat: no-repeat;
   mask-position: center;
@@ -82,7 +94,6 @@
   -webkit-mask-size: contain;
 }
 
-/* Item Content */
 .item-content {
   display: flex;
   flex-direction: column;
@@ -110,7 +121,6 @@
   color: var(--color-gray-light);
 }
 
-/* Delete Button */
 .delete-item-btn {
   background: none;
   border: none;
@@ -118,12 +128,17 @@
   cursor: pointer;
   font-size: 18px;
   padding: 0 4px;
+  margin-left: 8px;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 .reminder-row:hover .delete-item-btn {
   opacity: 1;
+}
+
+.delete-item-btn:hover {
+  color: var(--color-primary);
 }
 
 /* Plus Button (Global) */
@@ -139,7 +154,8 @@
   cursor: pointer;
   margin: var(--spacing-sm) auto var(--spacing-2xl) auto;
   flex-shrink: 0;
-  transition: transform var(--transition-normal);
+  transition: transform var(--transition-normal),
+    background-color var(--transition-normal);
 }
 
 .plus-btn-container:hover {
