@@ -68,10 +68,18 @@
   border-color: var(--color-gray-light);
 }
 
-.checkbox-rect img {
+.icon-cancel-mask {
   width: 7px;
   height: 7px;
-  filter: var(--filter-done-icon); /* 다크모드 대응 */
+  background-color: var(--color-gray-light); /* 완료 상태의 흐린 회색 적용 */
+  mask-image: url('../../assets/icons/cancel.svg');
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: url('../../assets/icons/cancel.svg');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
 
 /* Item Content */

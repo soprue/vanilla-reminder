@@ -74,12 +74,15 @@
   transition: background-color var(--transition-fast);
 }
 
-.icon-circle:hover {
-  background: var(--color-gray-light);
-}
-
-.icon-circle img {
+.icon-mask {
   width: 18px;
   height: 18px;
-  filter: var(--filter-sidebar-icon); /* 다크모드 대응 */
+  background-color: var(--color-icon-brown); /* 이 색상이 아이콘 색상이 됨 */
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  transition: background-color var(--transition-fast);
 }
