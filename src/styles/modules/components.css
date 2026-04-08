@@ -1,0 +1,145 @@
+/* 
+  3. Common Components
+*/
+
+.section-card {
+  width: 100%;
+  min-width: 303px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-normal);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.section-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.reminder-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.reminder-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Checkbox */
+.checkbox-rect {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-icon-brown);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: border-color var(--transition-fast);
+}
+
+.checkbox-rect.done {
+  border-color: var(--color-gray-light);
+}
+
+.checkbox-rect img {
+  width: 7px;
+  height: 7px;
+  filter: var(--filter-done-icon); /* 다크모드 대응 */
+}
+
+/* Item Content */
+.item-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.text-main {
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  color: var(--color-black);
+  margin: 0;
+  line-height: 1.4;
+  transition: color var(--transition-fast);
+}
+
+.text-time {
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-medium);
+  margin-top: var(--spacing-xs);
+  transition: color var(--transition-fast);
+}
+
+.text-done {
+  color: var(--color-gray-light);
+}
+
+/* Delete Button */
+.delete-item-btn {
+  background: none;
+  border: none;
+  color: var(--color-gray-light);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.reminder-row:hover .delete-item-btn {
+  opacity: 1;
+}
+
+/* Plus Button (Global) */
+.plus-btn-container {
+  width: var(--plus-btn-size);
+  height: var(--plus-btn-size);
+  background: var(--color-plus-bg);
+  border-radius: var(--radius-full);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin: var(--spacing-sm) auto var(--spacing-2xl) auto;
+  flex-shrink: 0;
+  transition: transform var(--transition-normal);
+}
+
+.plus-btn-container:hover {
+  transform: scale(1.05);
+}
+
+.plus-btn-container img {
+  width: 30px;
+  height: 30px;
+  filter: var(--filter-plus-icon);
+}
