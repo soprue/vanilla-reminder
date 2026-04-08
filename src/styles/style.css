@@ -265,8 +265,24 @@ body {
 }
 
 /* 완료 상태 통합 클래스 */
-.text-done {
+.delete-item-btn {
+  background: none;
+  border: none;
   color: var(--color-gray-light);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  margin-left: 8px;
+  opacity: 0; /* 평소에는 숨김 */
+  transition: opacity var(--transition-fast);
+}
+
+.reminder-row:hover .delete-item-btn {
+  opacity: 1; /* 마우스 올리면 나타남 */
+}
+
+.delete-item-btn:hover {
+  color: var(--color-primary); /* 버튼 자체에 마우스 올리면 강조 */
 }
 
 /* 추가 모드 인풋 스타일 */
