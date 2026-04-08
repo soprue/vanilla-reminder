@@ -12,7 +12,12 @@ import { ReminderSection } from './components/ReminderSection';
 import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
-  addingSectionId: string | null; // 현재 입력 중인 섹션의 ID
+  addingSectionId: string | null;
+  showTimePopover: boolean; // 모달에서 다시 팝오버로 이름 변경
+  selectedTime: string;
+  pickerAMPM: 'AM' | 'PM';
+  pickerHour: string;
+  pickerMinute: string;
 }
 
 /**
@@ -24,54 +29,74 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   init() {
     this.state = {
       addingSectionId: null,
+      showTimePopover: false,
+      selectedTime: 'All Day',
+      pickerAMPM: 'AM',
+      pickerHour: '09',
+      pickerMinute: '00',
     };
     this.router = Router.getInstance();
     
-    // 전역 스토어 구독
     this.subscribe(authStore);
     this.subscribe(themeStore);
     this.subscribe(reminderStore);
   }
 
   componentDidUpdate() {
-    // 입력 모드일 경우 해당 인풋창을 찾아 강제로 포커스를 줍니다.
-    if (this.state.addingSectionId) {
+    if (this.state.addingSectionId && !this.state.showTimePopover) {
       const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
       if (input) input.focus();
     }
   }
 
-  /**
-   * 리마인더 항목 완료 토글
-   */
   handleToggleReminder(sectionId: string, reminderId: number) {
     reminderStore.toggleReminder(sectionId, reminderId);
   }
 
-  /**
-   * 새로운 리마인더 추가 모드 진입/해제
-   */
+  handleDeleteReminder(sectionId: string, reminderId: number) {
+    reminderStore.deleteReminder(sectionId, reminderId);
+  }
+
   setAddingSection(sectionId: string | null) {
-    this.setState({ addingSectionId: sectionId });
+    this.setState({ 
+      addingSectionId: sectionId,
+      showTimePopover: false,
+      selectedTime: 'All Day'
+    });
+  }
+
+  toggleTimePopover() {
+    this.setState({ showTimePopover: !this.state.showTimePopover });
+  }
+
+  updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
+    const newState = { ...this.state, [key]: value };
+    const formattedTime = `${newState.pickerHour}:${newState.pickerMinute} ${newState.pickerAMPM}`;
+    this.setState({ 
+      [key]: value,
+      selectedTime: formattedTime 
+    } as any);
+  }
+
+  setAllDay() {
+    this.setState({ 
+      selectedTime: 'All Day',
+      showTimePopover: false 
+    });
   }
 
   /**
    * 실제 리마인더 데이터 추가
    */
   handleAddReminder(e: KeyboardEvent, sectionId: string) {
-    if (e.key === 'Enter') {
-      const input = e.target as HTMLInputElement;
-      const text = input.value.trim();
-      if (!text) return;
+    const input = e.target as HTMLInputElement;
+    const text = input.value.trim();
+    if (!text) return;
 
-      reminderStore.addReminder(sectionId, text);
-      this.setAddingSection(null);
-    }
+    reminderStore.addReminder(sectionId, text, this.state.selectedTime);
+    this.setAddingSection(null);
   }
 
-  /**
-   * 섹션 삭제
-   */
   handleDeleteSection(sectionId: string) {
     if (confirm('이 섹션을 삭제하시겠습니까?')) {
       reminderStore.deleteSection(sectionId);
@@ -88,7 +113,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId } = this.state;
+    const { addingSectionId, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
 
@@ -105,18 +130,25 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
             ${sections.map((section) =>
               ReminderSection({
                 title: section.title,
-                category: section.id, // 내부적으로 category 대신 id 사용
+                category: section.id,
                 items: section.items,
                 isEditing: addingSectionId === section.id,
+                showTimePopover: showTimePopover,
+                selectedTime: selectedTime,
+                pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
                 onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
+                onDeleteItem: (reminderId: number) => this.handleDeleteReminder(section.id, reminderId),
                 onSetEditing: (id: string | null) => this.setAddingSection(id),
+                onToggleTimePopover: () => this.toggleTimePopover(),
+                onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
+                onSetAllDay: () => this.setAllDay(),
                 onAddItem: (e: KeyboardEvent) => this.handleAddReminder(e, section.id),
                 onDeleteSection: () => this.handleDeleteSection(section.id),
               })
             )}
           </div>
 
-          <button class="plus-btn-container" onclick="${() => alert('새 섹션 추가 기능은 곧 구현됩니다!')}">
+          <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
             <img src="${plusIcon}" alt="add" />
           </button>
         </div>

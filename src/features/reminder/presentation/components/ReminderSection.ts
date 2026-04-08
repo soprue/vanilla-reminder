@@ -1,15 +1,22 @@
 import jsx from '@core/JSX';
 import { ReminderItem } from './ReminderItem';
 import minusSquareIcon from '@assets/icons/minusSquare.svg';
+import clockIcon from '@assets/icons/clock.svg';
 
 interface ReminderSectionProps {
   title: string;
   category: string;
   items: any[];
   isEditing: boolean;
+  showTimePopover: boolean;
+  selectedTime: string;
+  pickerState: { ampm: string; hour: string; minute: string };
   onToggleItem: (id: number) => void;
-  onDeleteItem: (id: number) => void; // 신규 추가
+  onDeleteItem: (id: number) => void;
   onSetEditing: (id: string | null) => void;
+  onToggleTimePopover: () => void;
+  onUpdatePicker: (key: string, val: string) => void;
+  onSetAllDay: () => void;
   onAddItem: (e: KeyboardEvent, id: string) => void;
   onDeleteSection: () => void;
 }
@@ -22,14 +29,24 @@ export const ReminderSection = ({
   category,
   items,
   isEditing,
+  showTimePopover,
+  selectedTime,
+  pickerState,
   onToggleItem,
-  onDeleteItem, // 추가
+  onDeleteItem,
   onSetEditing,
+  onToggleTimePopover,
+  onUpdatePicker,
+  onSetAllDay,
   onAddItem,
   onDeleteSection
 }: ReminderSectionProps) => {
-  // 'EVERYDAY'와 'TODO'는 고정 섹션으로 판단
   const isFixed = category === 'EVERYDAY' || category === 'TODO';
+
+  // 컬럼 데이터 생성
+  const ampmOptions = ['AM', 'PM'];
+  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
   return jsx`
     <section class="section-card">
@@ -42,40 +59,71 @@ export const ReminderSection = ({
         ` : ''}
       </div>
       
-      <!-- 리스트 항목들만 담는 컨테이너 -->
       <div class="items-container">
         ${items.map(item => ReminderItem({ 
           item, 
           onToggle: onToggleItem,
-          onDelete: onDeleteItem // 전달
+          onDelete: onDeleteItem 
         }))}
       </div>
       
-      <!-- 추가 버튼 영역 -->
       <div class="section-footer" style="margin-top: 12px;">
         ${isEditing 
           ? jsx`
-              <div class="reminder-row">
-                <div class="checkbox-rect"></div>
-                <div class="item-content">
+              <div class="input-area-wrapper">
+                <div class="input-container">
+                  <div class="checkbox-rect"></div>
                   <input 
                     type="text" 
                     class="reminder-inline-input" 
                     placeholder="할 일을 입력하세요..."
                     onkeydown="${(e: KeyboardEvent) => {
-                      // Enter 입력 시 blur 이벤트보다 먼저 처리를 완료할 수 있게 함
-                      if (e.key === 'Enter') {
-                        onAddItem(e, category);
-                      }
-                    }}"
-                    onblur="${(e: FocusEvent) => {
-                      // Enter를 쳤을 때 발생할 수 있는 레이스 컨디션 방지를 위해 약간의 지연을 주거나
-                      // 단순히 부모의 상태를 null로 돌림
-                      setTimeout(() => onSetEditing(null), 100);
+                      if (e.key === 'Enter') onAddItem(e, category);
                     }}"
                   />
-
+                  <button class="time-popover-btn" onclick="${onToggleTimePopover}" title="시간 설정">
+                    <span style="font-size: 11px; color: var(--color-primary); margin-right: 4px; font-weight: 700;">
+                      ${selectedTime === 'All Day' ? '' : selectedTime}
+                    </span>
+                    <img src="${clockIcon}" alt="time" />
+                  </button>
                 </div>
+
+                <!-- 작고 예쁜 미니 팝오버 -->
+                ${showTimePopover ? jsx`
+                  <div class="time-popover-box">
+                    <div class="popover-all-day" onclick="${onSetAllDay}">☀️ All Day 로 설정</div>
+                    <div class="mini-picker-columns">
+                      <!-- AM/PM -->
+                      <div class="mini-column">
+                        <div class="mini-item"></div> <!-- Spacer -->
+                        ${ampmOptions.map(opt => jsx`
+                          <div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" 
+                               onclick="${() => onUpdatePicker('pickerAMPM', opt)}">${opt}</div>
+                        `)}
+                        <div class="mini-item"></div> <!-- Spacer -->
+                      </div>
+                      <!-- HOURS -->
+                      <div class="mini-column">
+                        <div class="mini-item"></div> <!-- Spacer -->
+                        ${hourOptions.map(opt => jsx`
+                          <div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" 
+                               onclick="${() => onUpdatePicker('pickerHour', opt)}">${opt}</div>
+                        `)}
+                        <div class="mini-item"></div> <!-- Spacer -->
+                      </div>
+                      <!-- MINUTES -->
+                      <div class="mini-column">
+                        <div class="mini-item"></div> <!-- Spacer -->
+                        ${minuteOptions.map(opt => jsx`
+                          <div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" 
+                               onclick="${() => onUpdatePicker('pickerMinute', opt)}">${opt}</div>
+                        `)}
+                        <div class="mini-item"></div> <!-- Spacer -->
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
               </div>
             `
           : jsx`
