@@ -17,10 +17,7 @@ interface ReminderItemProps {
 export const ReminderItem = ({ item, onToggle }: ReminderItemProps) => {
   return jsx`
     <div class="reminder-row" 
-      onclick="${() => {
-        console.log('[ReminderItem] Clicked ID:', item.id);
-        onToggle(item.id);
-      }}" 
+      onclick="${() => onToggle(item.id)}" 
       style="cursor: pointer;"
     >
       <div 

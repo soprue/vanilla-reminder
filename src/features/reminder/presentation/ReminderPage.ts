@@ -45,7 +45,6 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
    * 리마인더 항목 완료 토글
    */
   handleToggleReminder(sectionId: string, reminderId: number) {
-    console.log(`[ReminderPage] handleToggleReminder - Section: ${sectionId}, ID: ${reminderId}`);
     reminderStore.toggleReminder(sectionId, reminderId);
   }
 
