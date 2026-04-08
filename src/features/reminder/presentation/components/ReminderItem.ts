@@ -14,9 +14,15 @@ interface ReminderItemProps {
 /**
  * 개별 리마인더 항목을 렌더링하는 컴포넌트
  */
-export const ReminderItem = ({ item }: ReminderItemProps) => {
+export const ReminderItem = ({ item, onToggle }: ReminderItemProps) => {
   return jsx`
-    <div class="reminder-row toggle-reminder" data-id="${item.id}" style="cursor: pointer;">
+    <div class="reminder-row" 
+      onclick="${() => {
+        console.log('[ReminderItem] Clicked ID:', item.id);
+        onToggle(item.id);
+      }}" 
+      style="cursor: pointer;"
+    >
       <div 
         class="checkbox-rect ${item.done ? 'done' : ''}" 
         style="display: flex; justify-content: center; align-items: center;"

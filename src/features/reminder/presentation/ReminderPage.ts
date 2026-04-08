@@ -3,118 +3,79 @@ import { Router } from '@core/Router';
 import jsx from '@core/JSX';
 import { authStore } from '@src/shared/store/AuthStore';
 import { themeStore } from '@src/shared/store/ThemeStore';
-import { Category, CATEGORIES } from '@src/shared/constants/category';
+import { reminderStore } from '@src/shared/store/ReminderStore';
+import { Reminder } from '@src/shared/types/reminder';
 
 // 부품 컴포넌트 임포트
 import { Sidebar } from './components/Sidebar';
 import { ReminderSection } from './components/ReminderSection';
 import plusIcon from '@assets/icons/plus.svg';
 
-interface Reminder {
-  id: number;
-  category: Category;
-  text: string;
-  time?: string;
-  done: boolean;
-}
-
 interface ReminderState {
-  addingCategory: Category | null;
-  reminders: Reminder[];
+  addingSectionId: string | null; // 현재 입력 중인 섹션의 ID
 }
 
+/**
+ * 리마인더 메인 페이지 컴포넌트
+ */
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   private router!: Router;
 
   init() {
     this.state = {
-      addingCategory: null,
-      reminders: [
-        { id: 1, category: Category.EVERYDAY, text: '약 먹기', time: '2:00 PM', done: true },
-        { id: 2, category: Category.EVERYDAY, text: '알고리즘 문제 풀기', time: '4:00 PM', done: false },
-        { id: 3, category: Category.EVERYDAY, text: '산책하기', time: '6:00 PM', done: false },
-        { id: 4, category: Category.TODO, text: '책 반납하기', time: 'All Day', done: false },
-        { id: 5, category: Category.TODO, text: '편의점 택배 보내고 오기', time: '4:00 PM', done: false },
-      ],
+      addingSectionId: null,
     };
     this.router = Router.getInstance();
+    
+    // 전역 스토어 구독
     this.subscribe(authStore);
     this.subscribe(themeStore);
-  }
-
-  setEvent() {
-    this.addEvent('click', '.theme-toggle-btn', this.toggleDarkMode.bind(this));
-    this.addEvent('click', '.logout-btn', this.handleLogout.bind(this));
-    
-    // 투두 완료 토글 (이벤트 위임)
-    this.addEvent('click', '.toggle-reminder', (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest('.toggle-reminder') as HTMLElement;
-      const id = Number(target.dataset.id);
-      this.toggleReminder(id);
-    });
-
-    // 눌러서 추가하기 버튼
-    this.addEvent('click', '.start-adding-btn', (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest('.start-adding-btn') as HTMLElement;
-      const category = target.dataset.category as Category;
-      this.setAddingCategory(category);
-    });
-
-    // 하단 큰 플러스 버튼
-    this.addEvent('click', '.plus-btn-container', () => {
-      this.setAddingCategory(Category.EVERYDAY);
-    });
-
-    // 인라인 입력창 이벤트
-    this.addEvent('keydown', '.reminder-inline-input', (e: KeyboardEvent) => {
-      const target = e.target as HTMLInputElement;
-      const category = target.dataset.category as Category;
-      this.addReminder(e, category);
-    });
-
-    this.addEvent('focusout', '.reminder-inline-input', () => {
-      this.setAddingCategory(null);
-    });
+    this.subscribe(reminderStore);
   }
 
   componentDidUpdate() {
-    if (this.state.addingCategory) {
+    // 입력 모드일 경우 해당 인풋창을 찾아 강제로 포커스를 줍니다.
+    if (this.state.addingSectionId) {
       const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
       if (input) input.focus();
     }
   }
 
-  toggleReminder(id: number) {
-    console.log('[ReminderPage] toggleReminder called with ID:', id);
-    if (isNaN(id)) {
-      console.error('[ReminderPage] Error: ID is NaN!');
-      return;
-    }
-    this.setState({
-      reminders: this.state.reminders.map((r) =>
-        r.id === id ? { ...r, done: !r.done } : r
-      ),
-    });
+  /**
+   * 리마인더 항목 완료 토글
+   */
+  handleToggleReminder(sectionId: string, reminderId: number) {
+    console.log(`[ReminderPage] handleToggleReminder - Section: ${sectionId}, ID: ${reminderId}`);
+    reminderStore.toggleReminder(sectionId, reminderId);
   }
 
-  setAddingCategory(category: Category | null) {
-    console.log('[ReminderPage] setAddingCategory called with:', category);
-    this.setState({ addingCategory: category });
+  /**
+   * 새로운 리마인더 추가 모드 진입/해제
+   */
+  setAddingSection(sectionId: string | null) {
+    this.setState({ addingSectionId: sectionId });
   }
 
-  addReminder(e: KeyboardEvent, category: Category) {
+  /**
+   * 실제 리마인더 데이터 추가
+   */
+  handleAddReminder(e: KeyboardEvent, sectionId: string) {
     if (e.key === 'Enter') {
       const input = e.target as HTMLInputElement;
       const text = input.value.trim();
       if (!text) return;
 
-      this.setState({
-        reminders: [
-          ...this.state.reminders,
-          { id: Date.now(), category, text, done: false },
-        ],
-        addingCategory: null,
-      });
+      reminderStore.addReminder(sectionId, text);
+      this.setAddingSection(null);
+    }
+  }
+
+  /**
+   * 섹션 삭제
+   */
+  handleDeleteSection(sectionId: string) {
+    if (confirm('이 섹션을 삭제하시겠습니까?')) {
+      reminderStore.deleteSection(sectionId);
     }
   }
 
@@ -128,29 +89,35 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { reminders, addingCategory } = this.state;
+    const { addingSectionId } = this.state;
     const { isDarkMode } = themeStore.getState();
+    const { sections } = reminderStore.getState();
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
-        ${Sidebar({ isDarkMode })}
+        ${Sidebar({
+          isDarkMode,
+          onToggleTheme: this.toggleDarkMode.bind(this),
+          onLogout: this.handleLogout.bind(this),
+        })}
 
         <div class="reminder-list-wrapper">
           <div class="sections-container">
-            ${CATEGORIES.map((cat) => 
+            ${sections.map((section) =>
               ReminderSection({
-                title: cat.title,
-                category: cat.value,
-                items: reminders.filter((r) => r.category === cat.value),
-                isEditing: addingCategory === cat.value,
-                onToggleItem: this.toggleReminder.bind(this),
-                onSetEditing: this.setAddingCategory.bind(this),
-                onAddItem: this.addReminder.bind(this),
+                title: section.title,
+                category: section.id, // 내부적으로 category 대신 id 사용
+                items: section.items,
+                isEditing: addingSectionId === section.id,
+                onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
+                onSetEditing: (id: string | null) => this.setAddingSection(id),
+                onAddItem: (e: KeyboardEvent) => this.handleAddReminder(e, section.id),
+                onDeleteSection: () => this.handleDeleteSection(section.id),
               })
             )}
           </div>
 
-          <button class="plus-btn-container">
+          <button class="plus-btn-container" onclick="${() => alert('새 섹션 추가 기능은 곧 구현됩니다!')}">
             <img src="${plusIcon}" alt="add" />
           </button>
         </div>
