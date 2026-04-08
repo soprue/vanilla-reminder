@@ -143,7 +143,7 @@ export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChil
 
   if (isChanged(newNode, oldNode)) {
     const $child = $parent.childNodes[index];
-    if ($child) {
+    if ($child && $child.parentNode === $parent) {
       $parent.replaceChild(createDOM(newNode), $child);
     } else {
       $parent.appendChild(createDOM(newNode));
