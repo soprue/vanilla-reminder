@@ -2,6 +2,7 @@ import { Component, ComponentProps } from '@core/Component';
 import { Router } from '@core/Router';
 import jsx from '@core/JSX';
 import { authStore } from '@src/shared/store/AuthStore';
+import { themeStore } from '@src/shared/store/ThemeStore';
 import { Category, CATEGORIES } from '@src/shared/constants/category';
 
 // 부품 컴포넌트 임포트
@@ -38,6 +39,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     };
     this.router = Router.getInstance();
     this.subscribe(authStore);
+    this.subscribe(themeStore);
   }
 
   setEvent() {
@@ -122,12 +124,12 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   toggleDarkMode() {
-    authStore.toggleDarkMode();
+    themeStore.toggleDarkMode();
   }
 
   render() {
     const { reminders, addingCategory } = this.state;
-    const { isDarkMode } = authStore.getState();
+    const { isDarkMode } = themeStore.getState();
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">

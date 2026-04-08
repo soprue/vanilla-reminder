@@ -1,6 +1,7 @@
 import { Component, ComponentProps } from '@core/Component';
 import jsx from '@core/JSX';
 import { authStore } from '@src/shared/store/AuthStore';
+import { themeStore } from '@src/shared/store/ThemeStore';
 import { Router } from '@src/core/Router';
 
 // 아이콘 임포트
@@ -9,6 +10,7 @@ import googleIcon from '@assets/icons/google.svg';
 export default class LoginPage extends Component<ComponentProps> {
   init() {
     this.subscribe(authStore);
+    this.subscribe(themeStore);
   }
 
   setEvent() {
@@ -36,7 +38,9 @@ export default class LoginPage extends Component<ComponentProps> {
   }
 
   render() {
-    const { isLoggedIn, user, isDarkMode } = authStore.getState();
+    const { isLoggedIn, user } = authStore.getState();
+    const { isDarkMode } = themeStore.getState();
+
 
     return jsx`
       <div class="login-wrapper ${isDarkMode ? 'dark-mode' : ''}">
