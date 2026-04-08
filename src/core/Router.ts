@@ -37,15 +37,13 @@ export class Router {
     if (route) {
       const target = document.getElementById('root');
       if (target) {
-        console.log('[Router] Found route for:', pathname);
         // 1. 기존 페이지 언마운트
         if (this.currentPage) {
           this.currentPage.unmount();
         }
 
-        // 2. 새 페이지 생성 및 마운트
+        // 2. 새 페이지 생성 (생성자 내부에서 mount/render가 이미 호출됨)
         this.currentPage = new route(target, {});
-        this.currentPage.render();
       }
     } else {
       console.error('[Router] Route not found for:', pathname);

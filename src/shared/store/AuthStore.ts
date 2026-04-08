@@ -7,7 +7,10 @@ interface AuthState {
 
 class AuthStore extends Store<AuthState> {
   constructor() {
-    super({ isLoggedIn: false, user: null });
+    super({ 
+      isLoggedIn: false, 
+      user: null
+    });
   }
 
   login(name: string) {

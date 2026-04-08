@@ -20,6 +20,7 @@ export class Component<
   protected state: S;
   private oldVNode: VNodeChild;
   private unsubs: (() => void)[] = [];
+  private eventHandlers: Array<{ eventType: string; handler: (event: Event) => void; useCapture: boolean }> = [];
 
   constructor(target: HTMLElement, props: P) {
     this.target = target;
@@ -29,6 +30,7 @@ export class Component<
     this.init();
     this.componentWillMount();
     this.mount();
+    this.setEvent(); // 이벤트 위임 등록 추가
     this.componentDidMount();
   }
 
@@ -37,6 +39,31 @@ export class Component<
    * constructor 실행 시 가장 먼저 호출됩니다.
    */
   init() {}
+
+  /**
+   * 이벤트 위임 방식으로 이벤트를 등록합니다.
+   * 자식 클래스에서 오버라이드하여 addEvent를 사용합니다.
+   */
+  setEvent() {}
+
+  /**
+   * 이벤트를 위임 등록하는 헬퍼 메서드
+   * @param eventType 이벤트 종류 (click, input, keydown 등)
+   * @param selector 대상 요소 선택자
+   * @param callback 실행할 콜백 함수
+   * @param useCapture 캡처링 사용 여부 (기본값 false)
+   */
+  addEvent(eventType: string, selector: string, callback: Function, useCapture = false) {
+    const handler = (event: Event) => {
+      const target = event.target as HTMLElement;
+      const closest = target.closest(selector);
+      if (closest) {
+        callback(event);
+      }
+    };
+    this.target.addEventListener(eventType, handler, useCapture);
+    this.eventHandlers.push({ eventType, handler, useCapture });
+  }
 
   /**
    * 전역 스토어를 구독합니다. 스토어 상태 변경 시 자동으로 컴포넌트가 리렌더링됩니다.
@@ -77,6 +104,13 @@ export class Component<
     this.componentWillUnmount();
     this.unsubs.forEach((unsub) => unsub());
     this.unsubs = [];
+    
+    // 등록된 모든 이벤트 핸들러 제거
+    this.eventHandlers.forEach(({ eventType, handler, useCapture }) => {
+      this.target.removeEventListener(eventType, handler, useCapture);
+    });
+    this.eventHandlers = [];
+
     this.target.innerHTML = '';
   }
 

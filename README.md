@@ -50,8 +50,8 @@
 본 프로젝트는 Nest.js 백엔드 통합 전까지 데스크톱 앱으로서의 완성도를 높이는 데 집중합니다.
 
 ### **1단계: 다크모드 스타일링 완성 (UI/UX)**
-- [ ] `style.css` 내 다크모드(`dark-mode`) 전용 색상 변수 정의
-- [ ] 시스템 테마 감지 (`matchMedia`) 및 자동 적용 기능
+- [x] `style.css` 내 다크모드(`dark-mode`) 전용 색상 변수 정의
+- [x] 시스템 테마 감지 (`matchMedia`) 및 자동 적용 기능
 
 ### **2단계: 데이터 영속성 확보 (Persistence)**
 - [ ] `localStorage` 또는 `electron-store`를 활용한 상태 자동 저장
