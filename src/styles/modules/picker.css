@@ -41,11 +41,21 @@
   padding: 5px 10px;
   border: none;
   border-radius: 8px;
-  background-color: var(--color-gray-lighter); /* 기본 배경을 아주 연하게 */
+  background-color: var(--color-gray-lighter);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
-  flex-shrink: 0; /* 배지가 찌그러지지 않게 보호 */
+  flex-shrink: 0;
+}
+
+/* 텍스트가 비어있으면 숨겨서 flex gap이 생기지 않게 함 */
+.time-text:empty {
+  display: none;
+}
+
+/* 텍스트가 없을 때는 좌우 여백을 조금 더 좁게 주어 깔끔하게 함 */
+.time-badge:has(.time-text:empty) {
+  padding: 5px 8px;
 }
 
 .time-badge:hover {

@@ -113,18 +113,16 @@ export const ReminderSection = ({
                     onclick="${onToggleTimePopover}"
                   >
                     <img src="${clockIcon}" alt="time" class="time-icon" />
-                    <span class="time-text">
-                      ${selectedTime === 'All Day' ? '' : selectedTime}
-                    </span>
+                    <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
                   </button>                </div>
 
                 ${
                   showTimePopover
                     ? jsx`
                   <div class="time-popover-box">
-                    <div class="popover-all-day" onclick="${() => {
+                    <div class="popover-all-day" onclick="${(e: Event) => {
+                      e.stopPropagation();
                       onSetAllDay();
-                      onToggleTimePopover();
                     }}">☀️ All Day 로 설정</div>
                     <div class="mini-picker-columns">
                       <div class="mini-column">
