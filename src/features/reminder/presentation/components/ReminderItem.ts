@@ -21,15 +21,23 @@ export const ReminderItem = ({ item, onToggle, onDelete }: ReminderItemProps) =>
       <div 
         class="checkbox-rect ${item.done ? 'done' : ''}" 
         onclick="${(e: MouseEvent) => {
+          e.preventDefault();
           e.stopPropagation();
           onToggle(item.id);
         }}"
       >
-        <!-- img 대신 div + mask-image 방식 사용 -->
-        ${item.done ? jsx`<div class="icon-cancel-mask"></div>` : ''}
+        ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
       </div>
       
-      <div class="item-content" onclick="${() => onToggle(item.id)}" style="cursor: pointer; flex: 1;">
+      <div 
+        class="item-content" 
+        onclick="${(e: MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle(item.id);
+        }}" 
+        style="cursor: pointer; flex: 1;"
+      >
         <p class="text-main ${item.done ? 'text-done' : ''}">${item.text}</p>
         ${item.time ? jsx`<span class="text-time ${item.done ? 'text-done' : ''}">${item.time}</span>` : ''}
       </div>

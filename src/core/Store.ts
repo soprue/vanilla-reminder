@@ -36,7 +36,6 @@ export class Store<T extends object> {
    */
   setState(newState: Partial<T>) {
     this.state = { ...this.state, ...newState };
-    this.notify();
     
     if (this.storageKey) {
       try {
@@ -45,6 +44,8 @@ export class Store<T extends object> {
         console.error(`[Store] Failed to save state for key "${this.storageKey}":`, e);
       }
     }
+
+    this.notify();
   }
 
   /**
