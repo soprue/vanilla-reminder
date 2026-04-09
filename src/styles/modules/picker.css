@@ -1,36 +1,85 @@
 /* 
   4. Apple Style Time Picker (Popover)
 */
-
 .input-area-wrapper {
   position: relative;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .input-container {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  height: 24px;
+  gap: 8px;
+  padding: 0 0 4px 0; /* 좌우 여백을 주어 배지가 벽에 붙지 않게 함 */
+  border-bottom: 1.5px solid var(--color-gray-light);
+  transition: all 0.2s ease;
+  min-height: 38px;
+  width: 100%;
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+}
+
+.input-container:focus-within {
+  border-bottom-color: var(--color-primary);
 }
 
 .reminder-inline-input {
-  border: none;
+  flex: 1;
+  min-width: 0; /* 중요: 텍스트가 길어도 배지를 밀어내지 않고 줄어들게 함 */
+  border: none !important;
   outline: none;
   background: transparent;
-  flex: 1;
   font-family: inherit;
-  font-size: var(--font-size-base);
+  font-size: 14px;
   color: var(--color-black);
-  border-bottom: 1px solid var(--color-gray-light);
 }
 
-.time-popover-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
+.time-badge {
   display: flex;
   align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--color-gray-lighter); /* 기본 배경을 아주 연하게 */
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0; /* 배지가 찌그러지지 않게 보호 */
+}
+
+.time-badge:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.time-badge.active {
+  background-color: rgba(255, 149, 0, 0.12);
+  color: var(--color-primary);
+}
+
+.time-badge.active:hover {
+  background-color: rgba(255, 149, 0, 0.2);
+}
+
+.time-icon {
+  width: 13px;
+  height: 13px;
+  opacity: 0.6;
+}
+
+.time-badge.active .time-icon {
+  opacity: 1;
+  filter: none; /* 아이콘 색상 최적화 */
+}
+
+.time-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-dark);
+}
+
+.time-badge.active .time-text {
+  color: var(--color-primary);
 }
 
 .time-popover-box {
@@ -55,8 +104,14 @@
 }
 
 @keyframes popover-in {
-  from { opacity: 0; transform: translateY(-15px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .popover-all-day {
@@ -74,8 +129,20 @@
   display: flex;
   height: 140px;
   position: relative;
-  mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
 }
 
 .mini-column {
@@ -86,7 +153,9 @@
   scroll-snap-type: y mandatory;
 }
 
-.mini-column::-webkit-scrollbar { display: none; }
+.mini-column::-webkit-scrollbar {
+  display: none;
+}
 
 .mini-item {
   height: 40px;

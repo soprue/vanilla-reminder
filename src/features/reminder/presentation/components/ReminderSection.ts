@@ -107,19 +107,25 @@ export const ReminderSection = ({
                       setTimeout(() => onSetEditing(null), 150);
                     }}"
                   />
-                  <button type="button" class="time-popover-btn" onclick="${onToggleTimePopover}">
-                    <span style="font-size: 11px; color: var(--color-primary); margin-right: 4px; font-weight: 700;">
+                  <button
+                    type="button"
+                    class="time-badge ${selectedTime !== 'All Day' ? 'active' : ''}"
+                    onclick="${onToggleTimePopover}"
+                  >
+                    <img src="${clockIcon}" alt="time" class="time-icon" />
+                    <span class="time-text">
                       ${selectedTime === 'All Day' ? '' : selectedTime}
                     </span>
-                    <img src="${clockIcon}" alt="time" />
-                  </button>
-                </div>
+                  </button>                </div>
 
                 ${
                   showTimePopover
                     ? jsx`
                   <div class="time-popover-box">
-                    <div class="popover-all-day" onclick="${onSetAllDay}">☀️ All Day 로 설정</div>
+                    <div class="popover-all-day" onclick="${() => {
+                      onSetAllDay();
+                      onToggleTimePopover();
+                    }}">☀️ All Day 로 설정</div>
                     <div class="mini-picker-columns">
                       <div class="mini-column">
                         <div class="mini-item"></div>
@@ -128,11 +134,10 @@ export const ReminderSection = ({
                           <div class="mini-item ${
                             pickerState.ampm === opt ? 'selected' : ''
                           }" 
-                               onclick="${() =>
-                                 onUpdatePicker(
-                                   'pickerAMPM',
-                                   opt
-                                 )}">${opt}</div>
+                               onclick="${() => {
+                                 onUpdatePicker('pickerAMPM', opt);
+                                 onToggleTimePopover();
+                               }}">${opt}</div>
                         `
                         )}
                         <div class="mini-item"></div>
@@ -144,11 +149,10 @@ export const ReminderSection = ({
                           <div class="mini-item ${
                             pickerState.hour === opt ? 'selected' : ''
                           }" 
-                               onclick="${() =>
-                                 onUpdatePicker(
-                                   'pickerHour',
-                                   opt
-                                 )}">${opt}</div>
+                               onclick="${() => {
+                                 onUpdatePicker('pickerHour', opt);
+                                 onToggleTimePopover();
+                               }}">${opt}</div>
                         `
                         )}
                         <div class="mini-item"></div>
@@ -160,11 +164,10 @@ export const ReminderSection = ({
                           <div class="mini-item ${
                             pickerState.minute === opt ? 'selected' : ''
                           }" 
-                               onclick="${() =>
-                                 onUpdatePicker(
-                                   'pickerMinute',
-                                   opt
-                                 )}">${opt}</div>
+                               onclick="${() => {
+                                 onUpdatePicker('pickerMinute', opt);
+                                 onToggleTimePopover();
+                               }}">${opt}</div>
                         `
                         )}
                         <div class="mini-item"></div>
