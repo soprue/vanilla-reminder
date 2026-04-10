@@ -44,8 +44,8 @@ export const ReminderItem = ({
     const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
     return jsx`
-      <form class="reminder-row editing input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}">
-        <div class="input-container" style="flex: 1; border-bottom: none; padding: 0;">
+      <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}" style="margin-bottom: 8px;">
+        <div class="input-container">
           <div class="checkbox-rect ${item.done ? 'done' : ''}">
             ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
           </div>
@@ -79,7 +79,7 @@ export const ReminderItem = ({
         ${
           showTimePopover
             ? jsx`
-          <div class="time-popover-box" style="top: 40px;">
+          <div class="time-popover-box" style="top: 36px;">
             <div class="popover-all-day" onclick="${(e: Event) => {
               e.stopPropagation();
               onSetAllDay();
