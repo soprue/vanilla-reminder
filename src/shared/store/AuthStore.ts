@@ -10,7 +10,7 @@ class AuthStore extends Store<AuthState> {
     super({ 
       isLoggedIn: false, 
       user: null
-    });
+    }, 'vanilla_reminder_auth'); // 저장 키 추가
   }
 
   login(name: string) {

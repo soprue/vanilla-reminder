@@ -6,12 +6,12 @@ interface ThemeState {
 
 class ThemeStore extends Store<ThemeState> {
   constructor() {
-    // 1. 시스템 테마 설정을 초기값으로 사용
+    // 1. 시스템 테마 설정을 초기값으로 사용 (저장된 값이 없을 때만 사용됨)
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     super({ 
       isDarkMode: systemDark 
-    });
+    }, 'vanilla_reminder_theme'); // 저장 키 추가
 
     // 2. 시스템 테마 변경 실시간 감지 리스너 등록
     this.initSystemThemeListener();
