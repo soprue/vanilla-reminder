@@ -121,22 +121,38 @@
   color: var(--color-gray-light);
 }
 
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.reminder-row:hover .item-actions {
+  opacity: 1;
+}
+
+.edit-item-btn,
 .delete-item-btn {
   background: none;
   border: none;
   color: var(--color-gray-light);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   padding: 0 4px;
-  margin-left: 8px;
-  opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
-.reminder-row:hover .delete-item-btn {
-  opacity: 1;
+.edit-item-btn {
+  font-size: 14px;
 }
 
+.delete-item-btn {
+  font-size: 18px;
+}
+
+.edit-item-btn:hover,
 .delete-item-btn:hover {
   color: var(--color-primary);
 }

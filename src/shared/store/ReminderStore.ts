@@ -99,6 +99,22 @@ class ReminderStore extends Store<ReminderState> {
   }
 
   /**
+   * 특정 항목의 내용을 업데이트합니다.
+   */
+  updateReminder(sectionId: string, reminderId: number, text: string, time?: string) {
+    const nextSections = this.state.sections.map((section) => {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        items: section.items.map((item) =>
+          item.id === reminderId ? { ...item, text, time } : item
+        ),
+      };
+    });
+    this.setState({ sections: nextSections });
+  }
+
+  /**
    * 섹션 자체를 삭제합니다. (isFixed가 아닐 때만)
    */
   deleteSection(sectionId: string) {

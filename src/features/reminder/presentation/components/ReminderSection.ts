@@ -7,13 +7,16 @@ interface ReminderSectionProps {
   title: string;
   category: string;
   items: any[];
-  isEditing: boolean;
+  addingSectionId: string | null;
+  editingItemId: number | null;
   showTimePopover: boolean;
   selectedTime: string;
   pickerState: { ampm: string; hour: string; minute: string };
   onToggleItem: (id: number) => void;
   onDeleteItem: (id: number) => void;
-  onSetEditing: (id: string | null) => void;
+  onUpdateItem: (id: number, text: string) => void;
+  onSetAddingSection: (id: string | null) => void;
+  onSetEditingItem: (id: number | null) => void;
   onToggleTimePopover: () => void;
   onUpdatePicker: (key: string, val: string) => void;
   onSetAllDay: () => void;
@@ -28,13 +31,16 @@ export const ReminderSection = ({
   title,
   category,
   items,
-  isEditing,
+  addingSectionId,
+  editingItemId,
   showTimePopover,
   selectedTime,
   pickerState,
   onToggleItem,
   onDeleteItem,
-  onSetEditing,
+  onUpdateItem,
+  onSetAddingSection,
+  onSetEditingItem,
   onToggleTimePopover,
   onUpdatePicker,
   onSetAllDay,
@@ -42,6 +48,7 @@ export const ReminderSection = ({
   onDeleteSection,
 }: ReminderSectionProps) => {
   const isFixed = category === 'EVERYDAY' || category === 'TODO';
+  const isAdding = addingSectionId === category;
 
   // 시간 옵션 생성
   const ampmOptions = ['AM', 'PM'];
@@ -71,15 +78,24 @@ export const ReminderSection = ({
         ${items.map((item) =>
           ReminderItem({
             item,
+            isEditing: editingItemId === item.id,
+            showTimePopover,
+            selectedTime,
+            pickerState,
             onToggle: onToggleItem,
             onDelete: onDeleteItem,
+            onUpdate: onUpdateItem,
+            onStartEdit: onSetEditingItem,
+            onToggleTimePopover,
+            onUpdatePicker,
+            onSetAllDay,
           })
         )}
       </div>
       
       <div class="section-footer">
         ${
-          isEditing
+          isAdding
             ? jsx`
               <form class="input-area-wrapper" onsubmit="${(e: Event) =>
                 e.preventDefault()}">
@@ -93,18 +109,11 @@ export const ReminderSection = ({
                       if (e.key === 'Enter') onAddItem(e, category);
                     }}"
                     onblur="${(e: FocusEvent) => {
-                      // 시간 피커를 누를 때는 닫히지 않게 방어
                       const container = (e.target as HTMLElement).closest(
                         '.input-area-wrapper'
                       );
-                      if (
-                        container &&
-                        container.contains(e.relatedTarget as Node)
-                      )
-                        return;
-
-                      // 미세한 지연을 주어 클릭 이벤트가 씹히지 않게 함
-                      setTimeout(() => onSetEditing(null), 150);
+                      if (container && container.contains(e.relatedTarget as Node)) return;
+                      setTimeout(() => onSetAddingSection(null), 150);
                     }}"
                   />
                   <button
@@ -114,7 +123,8 @@ export const ReminderSection = ({
                   >
                     <img src="${clockIcon}" alt="time" class="time-icon" />
                     <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
-                  </button>                </div>
+                  </button>
+                </div>
 
                 ${
                   showTimePopover
@@ -179,7 +189,7 @@ export const ReminderSection = ({
             `
             : jsx`
               <div class="reminder-row" onclick="${() =>
-                onSetEditing(category)}" style="cursor: pointer;">
+                onSetAddingSection(category)}" style="cursor: pointer;">
                 <div class="checkbox-rect done" style="border-style: dashed;"></div>
                 <div class="item-content">
                   <p class="text-main text-done">눌러서 추가하기</p>

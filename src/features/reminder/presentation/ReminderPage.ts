@@ -13,7 +13,8 @@ import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
   addingSectionId: string | null;
-  showTimePopover: boolean; // 모달에서 다시 팝오버로 이름 변경
+  editingItemId: number | null; // 수정 중인 항목 ID
+  showTimePopover: boolean;
   selectedTime: string;
   pickerAMPM: 'AM' | 'PM';
   pickerHour: string;
@@ -29,6 +30,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   init() {
     this.state = {
       addingSectionId: null,
+      editingItemId: null,
       showTimePopover: false,
       selectedTime: 'All Day',
       pickerAMPM: 'AM',
@@ -43,9 +45,16 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   componentDidUpdate() {
-    if (this.state.addingSectionId && !this.state.showTimePopover) {
+    // 추가 모드 또는 수정 모드일 때 포커스 처리
+    if ((this.state.addingSectionId || this.state.editingItemId) && !this.state.showTimePopover) {
       const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        // 텍스트 끝으로 커서 이동 (수정 모드일 때 유용)
+        const val = input.value;
+        input.value = '';
+        input.value = val;
+      }
     }
   }
 
@@ -57,9 +66,57 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     reminderStore.deleteReminder(sectionId, reminderId);
   }
 
+  handleUpdateReminder(sectionId: string, reminderId: number, text: string) {
+    if (text.trim()) {
+      reminderStore.updateReminder(sectionId, reminderId, text, this.state.selectedTime);
+    }
+    this.setState({ editingItemId: null });
+  }
+
+  setEditingItemId(reminderId: number | null) {
+    if (reminderId === null) {
+      this.setState({ editingItemId: null });
+      return;
+    }
+
+    // 수정할 아이템을 찾아 현재 시간을 상태에 동기화
+    const { sections } = reminderStore.getState();
+    let foundItem = null;
+    for (const section of sections) {
+      foundItem = section.items.find((it: any) => it.id === reminderId);
+      if (foundItem) break;
+    }
+
+    if (foundItem) {
+      const time = foundItem.time || 'All Day';
+      let ampm: 'AM' | 'PM' = 'AM';
+      let hour = '09';
+      let minute = '00';
+
+      if (time !== 'All Day') {
+        const [t, p] = time.split(' ');
+        const [h, m] = t.split(':');
+        ampm = (p as 'AM' | 'PM') || 'AM';
+        hour = h || '09';
+        minute = m || '00';
+      }
+
+      this.setState({ 
+        editingItemId: reminderId,
+        addingSectionId: null, // 추가 모드 해제
+        selectedTime: time,
+        pickerAMPM: ampm,
+        pickerHour: hour,
+        pickerMinute: minute,
+        showTimePopover: false
+      });
+    }
+  }
+
   setAddingSection(sectionId: string | null) {
     this.setState({ 
       addingSectionId: sectionId,
+      editingItemId: null, // 추가 모드 시 수정 모드 해제
       showTimePopover: false,
       selectedTime: 'All Day'
     });
@@ -113,7 +170,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
 
@@ -132,13 +189,16 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                 title: section.title,
                 category: section.id,
                 items: section.items,
-                isEditing: addingSectionId === section.id,
+                addingSectionId: addingSectionId,
+                editingItemId: editingItemId,
                 showTimePopover: showTimePopover,
                 selectedTime: selectedTime,
                 pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
                 onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
                 onDeleteItem: (reminderId: number) => this.handleDeleteReminder(section.id, reminderId),
-                onSetEditing: (id: string | null) => this.setAddingSection(id),
+                onUpdateItem: (reminderId: number, text: string) => this.handleUpdateReminder(section.id, reminderId, text),
+                onSetAddingSection: (id: string | null) => this.setAddingSection(id),
+                onSetEditingItem: (id: number | null) => this.setEditingItemId(id),
                 onToggleTimePopover: () => this.toggleTimePopover(),
                 onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
                 onSetAllDay: () => this.setAllDay(),
