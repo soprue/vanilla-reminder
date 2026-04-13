@@ -14,7 +14,7 @@ import plusIcon from '@assets/icons/plus.svg';
 interface ReminderState {
   addingSectionId: string | null;
   editingItemId: number | null; // 수정 중인 항목 ID
-  editingSectionId: string | null; // 수정 중인 섹션 ID 추가
+  editingSectionId: string | null; // 수정 중인 섹션 ID
   searchQuery: string;
   showTimePopover: boolean;
   selectedTime: string;
@@ -196,15 +196,22 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
 
-    // 검색어에 따른 필터링 로직
-    const filteredSections = sections.map(section => ({
+    // 1. 검색어로 아이템 필터링
+    const sectionsWithMatches = sections.map(section => ({
       ...section,
       items: section.items.filter(item => 
         item.text.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    })).filter(section => {
-      if (!searchQuery) return true;
-      return section.items.length > 0 || section.id === addingSectionId;
+    }));
+
+    // 2. 검색 중인지, 실제로 매칭되는 아이템이 있는지 확인
+    const isSearching = searchQuery.trim().length > 0;
+    const hasAnyMatches = sectionsWithMatches.some(s => s.items.length > 0);
+
+    // 3. 렌더링할 섹션 결정
+    const visibleSections = sectionsWithMatches.filter(section => {
+      if (!isSearching) return true; // 검색 안 할 때는 모든 섹션(Work 포함) 표시
+      return section.items.length > 0; // 검색 중일 때는 매칭된 아이템이 있는 섹션만 표시
     });
 
     return jsx`
@@ -228,8 +235,13 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
           <div class="sections-container">
             ${
-              filteredSections.length > 0
-                ? filteredSections.map((section) =>
+              isSearching && !hasAnyMatches
+                ? jsx`
+                  <div class="empty-search-state">
+                    <p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p>
+                  </div>
+                `
+                : visibleSections.map((section) =>
                     ReminderSection({
                       title: section.title,
                       category: section.id,
@@ -254,16 +266,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                       onDeleteSection: () => this.handleDeleteSection(section.id),
                     })
                   )
-                : jsx`
-                  <div class="empty-search-state">
-                    <p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p>
-                  </div>
-                `
             }
           </div>
 
           ${
-            !searchQuery ? jsx`
+            !isSearching ? jsx`
               <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
                 <img src="${plusIcon}" alt="add" />
               </button>
