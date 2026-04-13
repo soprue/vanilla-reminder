@@ -1,20 +1,19 @@
 import { Component, ComponentProps } from '@core/Component';
-import { Router } from '@core/Router';
 import jsx from '@core/JSX';
-import { authStore } from '@src/shared/store/AuthStore';
-import { themeStore } from '@src/shared/store/ThemeStore';
-import { reminderStore } from '@src/shared/store/ReminderStore';
-import { Reminder } from '@src/shared/types/reminder';
+import { authStore } from '@src/features/auth/domain/AuthStore';
+import { themeStore } from '@src/shared/domain/ThemeStore';
+import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 
-// 부품 컴포넌트 임포트
-import { Sidebar } from './components/Sidebar';
+// 부품 컴포넌트 및 서비스 임포트
+import { Sidebar } from '@src/shared/presentation/Sidebar';
 import { ReminderSection } from './components/ReminderSection';
+import { ReminderService } from './ReminderService';
 import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
   addingSectionId: string | null;
-  editingItemId: number | null; // 수정 중인 항목 ID
-  editingSectionId: string | null; // 수정 중인 섹션 ID
+  editingItemId: number | null;
+  editingSectionId: string | null;
   searchQuery: string;
   showTimePopover: boolean;
   selectedTime: string;
@@ -25,11 +24,13 @@ interface ReminderState {
 
 /**
  * 리마인더 메인 페이지 컴포넌트
+ * UI 구조와 데이터 구독을 담당하며, 복잡한 로직은 ReminderService에 위임합니다.
  */
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
-  private router!: Router;
+  private service!: ReminderService;
 
   init() {
+    this.service = new ReminderService(this);
     this.state = {
       addingSectionId: null,
       editingItemId: null,
@@ -41,7 +42,6 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       pickerHour: '09',
       pickerMinute: '00',
     };
-    this.router = Router.getInstance();
     
     this.subscribe(authStore);
     this.subscribe(themeStore);
@@ -49,252 +49,79 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   componentDidUpdate() {
-    // 추가 모드 또는 수정 모드일 때 포커스 처리
-    if ((this.state.addingSectionId || this.state.editingItemId || this.state.editingSectionId) && !this.state.showTimePopover) {
-      const input = this.target.querySelector('.reminder-inline-input, .section-title-input') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        // 텍스트 끝으로 커서 이동
-        const val = input.value;
-        input.value = '';
-        input.value = val;
-      }
+    // 추가/수정 모드 시 자동 포커스 처리
+    const input = this.target.querySelector('.reminder-inline-input, .section-title-input') as HTMLInputElement;
+    if (input && (this.state.addingSectionId || this.state.editingItemId || this.state.editingSectionId) && !this.state.showTimePopover) {
+      input.focus();
+      const val = input.value;
+      input.value = ''; input.value = val; // 커서를 끝으로 이동
     }
-  }
-
-  handleToggleReminder(sectionId: string, reminderId: number) {
-    reminderStore.toggleReminder(sectionId, reminderId);
-  }
-
-  handleDeleteReminder(sectionId: string, reminderId: number) {
-    reminderStore.deleteReminder(sectionId, reminderId);
-  }
-
-  handleUpdateReminder(sectionId: string, reminderId: number, text: string) {
-    // 이미 수정 중인 상태가 아니라면 (중복 호출 방지)
-    if (this.state.editingItemId !== reminderId) return;
-
-    if (text.trim()) {
-      reminderStore.updateReminder(sectionId, reminderId, text, this.state.selectedTime);
-    }
-    this.setState({ editingItemId: null });
-  }
-
-  setEditingItemId(reminderId: number | null) {
-    if (reminderId === null) {
-      this.setState({ editingItemId: null });
-      return;
-    }
-
-    const { sections } = reminderStore.getState();
-    let foundItem = null;
-    for (const section of sections) {
-      foundItem = section.items.find((it: any) => it.id === reminderId);
-      if (foundItem) break;
-    }
-
-    if (foundItem) {
-      const time = foundItem.time || 'All Day';
-      let ampm: 'AM' | 'PM' = 'AM';
-      let hour = '09';
-      let minute = '00';
-
-      if (time !== 'All Day') {
-        const [t, p] = time.split(' ');
-        const [h, m] = t.split(':');
-        ampm = (p as 'AM' | 'PM') || 'AM';
-        hour = h || '09';
-        minute = m || '00';
-      }
-
-      this.setState({ 
-        editingItemId: reminderId,
-        addingSectionId: null,
-        editingSectionId: null,
-        selectedTime: time,
-        pickerAMPM: ampm,
-        pickerHour: hour,
-        pickerMinute: minute,
-        showTimePopover: false
-      });
-    }
-  }
-
-  handleUpdateSectionTitle(sectionId: string, title: string) {
-    // 이미 수정 중인 상태가 아니라면 (중복 호출 방지)
-    if (this.state.editingSectionId !== sectionId) return;
-
-    if (title.trim()) {
-      reminderStore.updateSectionTitle(sectionId, title);
-    }
-    this.setState({ editingSectionId: null });
-  }
-
-  setEditingSectionId(sectionId: string | null) {
-    this.setState({ 
-      editingSectionId: sectionId,
-      addingSectionId: null,
-      editingItemId: null
-    });
-  }
-
-  setAddingSection(sectionId: string | null) {
-    this.setState({ 
-      addingSectionId: sectionId,
-      editingItemId: null,
-      editingSectionId: null,
-      showTimePopover: false,
-      selectedTime: 'All Day'
-    });
-  }
-
-  toggleTimePopover() {
-    this.setState({ showTimePopover: !this.state.showTimePopover });
-  }
-
-  updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
-    const newState = { ...this.state, [key]: value };
-    const formattedTime = `${newState.pickerHour}:${newState.pickerMinute} ${newState.pickerAMPM}`;
-    this.setState({ 
-      [key]: value,
-      selectedTime: formattedTime 
-    } as any);
-  }
-
-  setAllDay() {
-    this.setState({ 
-      selectedTime: 'All Day',
-      showTimePopover: false 
-    });
-  }
-
-  handleAddReminder(e: KeyboardEvent, sectionId: string) {
-    // 이미 추가 중인 상태가 아니라면 (중복 호출 방지)
-    if (this.state.addingSectionId !== sectionId) return;
-
-    const input = e.target as HTMLInputElement;
-    const text = input.value.trim();
-    if (!text) return;
-
-    reminderStore.addReminder(sectionId, text, this.state.selectedTime);
-    this.setAddingSection(null);
-  }
-
-  handleDeleteSection(sectionId: string) {
-    if (confirm('이 섹션을 삭제하시겠습니까?')) {
-      reminderStore.deleteSection(sectionId);
-    }
-  }
-
-  handleSearch(e: Event) {
-    const target = e.target as HTMLInputElement;
-    this.setState({ searchQuery: target.value });
-  }
-
-  handleLogout() {
-    authStore.logout();
-    this.router.navigate('/login');
-  }
-
-  toggleDarkMode() {
-    themeStore.toggleDarkMode();
   }
 
   render() {
     const { addingSectionId, editingItemId, editingSectionId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
-    const isSaving = reminderStore.isSaving; // 저장 상태 가져오기
+    const isSaving = reminderStore.isSaving;
 
-    // [중요] 수정 중이거나 추가 중일 때는 필터링을 잠시 멈춤 (데이터 유실 오해 방지)
     const isEditingAny = !!(addingSectionId || editingItemId || editingSectionId);
     const isSearching = searchQuery.trim().length > 0;
 
-    // 1. 검색어로 아이템 필터링
-    const sectionsWithMatches = sections.map(section => ({
-      ...section,
-      items: section.items.filter(item => 
-        item.text.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    // 검색 필터링 로직
+    const sectionsWithMatches = sections.map(s => ({
+      ...s, items: s.items.filter(item => item.text.toLowerCase().includes(searchQuery.toLowerCase()))
     }));
-
-    // 2. 실제로 매칭되는 아이템이 있는지 확인
     const hasAnyMatches = sectionsWithMatches.some(s => s.items.length > 0);
-
-    // 3. 렌더링할 섹션 결정
-    const visibleSections = sectionsWithMatches.filter(section => {
-      if (isEditingAny) return true; // 수정 중일 때는 모든 섹션 표시
-      if (!isSearching) return true; // 검색 안 할 때는 모든 섹션 표시
-      return section.items.length > 0; // 검색 중일 때는 매칭된 아이템이 있는 섹션만 표시
-    });
+    const visibleSections = sectionsWithMatches.filter(s => isEditingAny || !isSearching || s.items.length > 0);
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
         ${Sidebar({
           isDarkMode,
-          onToggleTheme: this.toggleDarkMode.bind(this),
-          onLogout: this.handleLogout.bind(this),
+          onToggleTheme: this.service.toggleDarkMode.bind(this.service),
+          onLogout: this.service.handleLogout.bind(this.service),
         })}
 
         <div class="reminder-list-wrapper">
           <div class="search-bar-container" style="position: relative;">
-            <input 
-              type="text" 
-              class="search-input" 
-              placeholder="검색어를 입력하세요..." 
-              value="${searchQuery}"
-              oninput="${this.handleSearch.bind(this)}"
-            />
-            ${
-              isSaving 
-                ? jsx`<div class="save-indicator">저장 중...</div>` 
-                : jsx`<div class="save-indicator saved">저장됨</div>`
-            }
+            <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${this.service.handleSearch.bind(this.service)}" />
+            <div class="save-indicator ${!isSaving ? 'saved' : ''}">${isSaving ? '저장 중...' : '저장됨'}</div>
           </div>
 
           <div class="sections-container">
-            ${
-              isSearching && !hasAnyMatches && !isEditingAny
-                ? jsx`
-                  <div class="empty-search-state">
-                    <p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p>
-                  </div>
-                `
-                : visibleSections.map((section) =>
-                    ReminderSection({
-                      title: section.title,
-                      category: section.id,
-                      items: section.items,
-                      addingSectionId: addingSectionId,
-                      editingItemId: editingItemId,
-                      isEditingTitle: editingSectionId === section.id,
-                      showTimePopover: showTimePopover,
-                      selectedTime: selectedTime,
-                      pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
-                      onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
-                      onDeleteItem: (reminderId: number) => this.handleDeleteReminder(section.id, reminderId),
-                      onUpdateItem: (reminderId: number, text: string) => this.handleUpdateReminder(section.id, reminderId, text),
-                      onSetAddingSection: (id: string | null) => this.setAddingSection(id),
-                      onSetEditingItem: (id: number | null) => this.setEditingItemId(id),
-                      onUpdateSectionTitle: (title: string) => this.handleUpdateSectionTitle(section.id, title),
-                      onSetEditingSection: (id: string | null) => this.setEditingSectionId(id),
-                      onToggleTimePopover: () => this.toggleTimePopover(),
-                      onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
-                      onSetAllDay: () => this.setAllDay(),
-                      onAddItem: (e: KeyboardEvent) => this.handleAddReminder(e, section.id),
-                      onDeleteSection: () => this.handleDeleteSection(section.id),
-                    })
-                  )
+            ${isSearching && !hasAnyMatches && !isEditingAny
+              ? jsx`<div class="empty-search-state"><p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p></div>`
+              : visibleSections.map((section) => ReminderSection({
+                  title: section.title,
+                  category: section.id,
+                  items: section.items,
+                  addingSectionId,
+                  editingItemId,
+                  isEditingTitle: editingSectionId === section.id,
+                  showTimePopover,
+                  selectedTime,
+                  pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
+                  onToggleItem: (id: number) => this.service.handleToggleReminder(section.id, id),
+                  onDeleteItem: (id: number) => this.service.handleDeleteReminder(section.id, id),
+                  onUpdateItem: (id: number, text: string) => this.service.handleUpdateReminder(section.id, id, text),
+                  onSetAddingSection: (id: string | null) => this.service.setAddingSection(id),
+                  onSetEditingItem: (id: number | null) => this.service.setEditingItemId(id),
+                  onUpdateSectionTitle: (title: string) => this.service.handleUpdateSectionTitle(section.id, title),
+                  onSetEditingSection: (id: string | null) => this.service.setEditingSectionId(id),
+                  onToggleTimePopover: () => this.service.toggleTimePopover(),
+                  onUpdatePicker: (k: any, v: any) => this.service.updatePickerTime(k, v),
+                  onSetAllDay: () => this.service.setAllDay(),
+                  onAddItem: (e: KeyboardEvent) => this.service.handleAddReminder(e, section.id),
+                  onDeleteSection: () => this.service.handleDeleteSection(section.id),
+                }))
             }
           </div>
 
-          ${
-            !isSearching && !isEditingAny ? jsx`
-              <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
-                <img src="${plusIcon}" alt="add" />
-              </button>
-            ` : ''
-          }
+          ${!isSearching && !isEditingAny ? jsx`
+            <button class="plus-btn-container" onclick="${() => this.service.addSection()}">
+              <img src="${plusIcon}" alt="add" />
+            </button>
+          ` : ''}
         </div>
       </div>
     `;

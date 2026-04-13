@@ -1,7 +1,7 @@
 import { Component, ComponentProps } from '@core/Component';
 import jsx from '@core/JSX';
-import { authStore } from '@src/shared/store/AuthStore';
-import { themeStore } from '@src/shared/store/ThemeStore';
+import { authStore } from '@src/features/auth/domain/AuthStore';
+import { themeStore } from '@src/shared/domain/ThemeStore';
 import { Router } from '@src/core/Router';
 
 // 아이콘 임포트

@@ -79,7 +79,10 @@ export const ReminderSection = ({
                   if (e.key === 'Enter') onUpdateSectionTitle((e.target as HTMLInputElement).value);
                   else if (e.key === 'Escape') onSetEditingSection(null);
                 }}"
-                onblur="${(e: FocusEvent) => onUpdateSectionTitle((e.target as HTMLInputElement).value)}"
+                onblur="${(e: FocusEvent) => {
+                  // Enter 키 이벤트와 충돌 방지 위해 지연 실행
+                  setTimeout(() => onUpdateSectionTitle((e.target as HTMLInputElement).value), 100);
+                }}"
               />
             `
             : jsx`
@@ -142,7 +145,8 @@ export const ReminderSection = ({
                         '.input-area-wrapper'
                       );
                       if (container && container.contains(e.relatedTarget as Node)) return;
-                      setTimeout(() => onSetAddingSection(null), 150);
+                      // 지연 시간을 200ms로 늘려 안정성 확보
+                      setTimeout(() => onSetAddingSection(null), 200);
                     }}"
                   />
                   <button

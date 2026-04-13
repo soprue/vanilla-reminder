@@ -1,5 +1,5 @@
 import { Store } from '@core/Store';
-import { ReminderSectionData } from '../types/reminder';
+import { ReminderSectionData } from './reminder';
 
 interface ReminderState {
   sections: ReminderSectionData[];
