@@ -7,7 +7,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 // 부품 컴포넌트 및 서비스 임포트
 import { Sidebar } from '@src/shared/presentation/Sidebar';
 import { ReminderSection } from './components/ReminderSection';
-import { ReminderService } from './ReminderService';
+import { reminderService } from './ReminderService';
 import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
@@ -27,10 +27,9 @@ interface ReminderState {
  * UI 구조와 데이터 구독을 담당하며, 복잡한 로직은 ReminderService에 위임합니다.
  */
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
-  private service!: ReminderService;
-
   init() {
-    this.service = new ReminderService(this);
+    reminderService.setComponent(this); // 서비스와 컴포넌트 연결
+    
     this.state = {
       addingSectionId: null,
       editingItemId: null,
@@ -49,12 +48,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   componentDidUpdate() {
-    // 추가/수정 모드 시 자동 포커스 처리
     const input = this.target.querySelector('.reminder-inline-input, .section-title-input') as HTMLInputElement;
     if (input && (this.state.addingSectionId || this.state.editingItemId || this.state.editingSectionId) && !this.state.showTimePopover) {
       input.focus();
       const val = input.value;
-      input.value = ''; input.value = val; // 커서를 끝으로 이동
+      input.value = ''; input.value = val;
     }
   }
 
@@ -78,13 +76,13 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
         ${Sidebar({
           isDarkMode,
-          onToggleTheme: this.service.toggleDarkMode.bind(this.service),
-          onLogout: this.service.handleLogout.bind(this.service),
+          onToggleTheme: () => reminderService.toggleDarkMode(),
+          onLogout: () => reminderService.handleLogout(),
         })}
 
         <div class="reminder-list-wrapper">
           <div class="search-bar-container" style="position: relative;">
-            <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${this.service.handleSearch.bind(this.service)}" />
+            <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${(e: Event) => reminderService.handleSearch(e)}" />
             <div class="save-indicator ${!isSaving ? 'saved' : ''}">${isSaving ? '저장 중...' : '저장됨'}</div>
           </div>
 
@@ -101,24 +99,12 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                   showTimePopover,
                   selectedTime,
                   pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
-                  onToggleItem: (id: number) => this.service.handleToggleReminder(section.id, id),
-                  onDeleteItem: (id: number) => this.service.handleDeleteReminder(section.id, id),
-                  onUpdateItem: (id: number, text: string) => this.service.handleUpdateReminder(section.id, id, text),
-                  onSetAddingSection: (id: string | null) => this.service.setAddingSection(id),
-                  onSetEditingItem: (id: number | null) => this.service.setEditingItemId(id),
-                  onUpdateSectionTitle: (title: string) => this.service.handleUpdateSectionTitle(section.id, title),
-                  onSetEditingSection: (id: string | null) => this.service.setEditingSectionId(id),
-                  onToggleTimePopover: () => this.service.toggleTimePopover(),
-                  onUpdatePicker: (k: any, v: any) => this.service.updatePickerTime(k, v),
-                  onSetAllDay: () => this.service.setAllDay(),
-                  onAddItem: (e: KeyboardEvent) => this.service.handleAddReminder(e, section.id),
-                  onDeleteSection: () => this.service.handleDeleteSection(section.id),
                 }))
             }
           </div>
 
           ${!isSearching && !isEditingAny ? jsx`
-            <button class="plus-btn-container" onclick="${() => this.service.addSection()}">
+            <button class="plus-btn-container" onclick="${() => reminderService.addSection()}">
               <img src="${plusIcon}" alt="add" />
             </button>
           ` : ''}

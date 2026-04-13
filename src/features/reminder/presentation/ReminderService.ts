@@ -5,12 +5,24 @@ import { Router } from '@core/Router';
 
 /**
  * 리마인더 페이지의 모든 비즈니스 로직을 담당하는 서비스 클래스
- * ReminderPage 컴포넌트를 경량화하기 위해 사용합니다.
  */
 export class ReminderService {
-  private component: any;
+  private static instance: ReminderService;
+  private component: any = null;
 
-  constructor(component: any) {
+  private constructor() {}
+
+  public static getInstance(): ReminderService {
+    if (!ReminderService.instance) {
+      ReminderService.instance = new ReminderService();
+    }
+    return ReminderService.instance;
+  }
+
+  /**
+   * 컴포넌트 참조 설정 (상태 업데이트를 위해 필요)
+   */
+  setComponent(component: any) {
     this.component = component;
   }
 
@@ -23,10 +35,13 @@ export class ReminderService {
   }
 
   handleDeleteReminder(sectionId: string, reminderId: number) {
-    reminderStore.deleteReminder(sectionId, reminderId);
+    if (confirm('이 항목을 삭제하시겠습니까?')) {
+      reminderStore.deleteReminder(sectionId, reminderId);
+    }
   }
 
   handleUpdateReminder(sectionId: string, reminderId: number, text: string) {
+    if (!this.component) return;
     const { editingItemId, selectedTime } = this.component.state;
     if (editingItemId !== reminderId) return;
 
@@ -37,6 +52,7 @@ export class ReminderService {
   }
 
   handleAddReminder(e: KeyboardEvent, sectionId: string) {
+    if (!this.component) return;
     const { addingSectionId, selectedTime } = this.component.state;
     if (addingSectionId !== sectionId) return;
 
@@ -53,7 +69,7 @@ export class ReminderService {
   /* -------------------------------------------------------------------------- */
 
   handleUpdateSectionTitle(sectionId: string, title: string) {
-    if (this.component.state.editingSectionId !== sectionId) return;
+    if (!this.component || this.component.state.editingSectionId !== sectionId) return;
 
     if (title.trim()) {
       reminderStore.updateSectionTitle(sectionId, title);
@@ -76,6 +92,7 @@ export class ReminderService {
   /* -------------------------------------------------------------------------- */
 
   setEditingItemId(reminderId: number | null) {
+    if (!this.component) return;
     if (reminderId === null) {
       this.component.setState({ editingItemId: null });
       return;
@@ -112,6 +129,7 @@ export class ReminderService {
   }
 
   setEditingSectionId(sectionId: string | null) {
+    if (!this.component) return;
     this.component.setState({ 
       editingSectionId: sectionId,
       addingSectionId: null,
@@ -120,6 +138,7 @@ export class ReminderService {
   }
 
   setAddingSection(sectionId: string | null) {
+    if (!this.component) return;
     this.component.setState({ 
       addingSectionId: sectionId,
       editingItemId: null,
@@ -130,6 +149,7 @@ export class ReminderService {
   }
 
   handleSearch(e: Event) {
+    if (!this.component) return;
     const target = e.target as HTMLInputElement;
     this.component.setState({ searchQuery: target.value });
   }
@@ -148,10 +168,12 @@ export class ReminderService {
   }
 
   toggleTimePopover() {
+    if (!this.component) return;
     this.component.setState({ showTimePopover: !this.component.state.showTimePopover });
   }
 
   updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
+    if (!this.component) return;
     const newState = { ...this.component.state, [key]: value };
     const formattedTime = `${newState.pickerHour}:${newState.pickerMinute} ${newState.pickerAMPM}`;
     this.component.setState({ 
@@ -161,9 +183,12 @@ export class ReminderService {
   }
 
   setAllDay() {
+    if (!this.component) return;
     this.component.setState({ 
       selectedTime: 'All Day',
       showTimePopover: false 
     });
   }
 }
+
+export const reminderService = ReminderService.getInstance();
