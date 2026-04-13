@@ -13,10 +13,18 @@ export class Store<T extends object> {
     this.storageKey = storageKey;
     
     // 1. 로컬 저장소에서 데이터 복구 시도
-    const savedState = this.storageKey ? localStorage.getItem(this.storageKey) : null;
+    const savedRaw = this.storageKey ? localStorage.getItem(this.storageKey) : null;
     
     try {
-      this.state = savedState ? JSON.parse(savedState) : initialState;
+      const savedState = savedRaw ? JSON.parse(savedRaw) : null;
+      
+      if (savedState) {
+        // 로컬 스토리지 데이터가 있으면 우선적으로 사용 (병합하지 않고 덮어쓰기)
+        // 단, 객체 형태일 때만 전개 연산자로 안전하게 복사
+        this.state = typeof savedState === 'object' ? { ...savedState } : savedState;
+      } else {
+        this.state = initialState;
+      }
     } catch (e) {
       console.error(`[Store] Failed to parse saved state for key "${this.storageKey}":`, e);
       this.state = initialState;
@@ -35,11 +43,19 @@ export class Store<T extends object> {
    * storageKey가 설정되어 있다면 localStorage에 자동으로 저장합니다.
    */
   setState(newState: Partial<T>) {
-    this.state = { ...this.state, ...newState };
+    const nextState = { ...this.state, ...newState };
+    
+    // 이전 상태와 다음 상태의 JSON 문자열 비교를 통해 실제 변경 여부 확인
+    const prevStateJson = JSON.stringify(this.state);
+    const nextStateJson = JSON.stringify(nextState);
+
+    if (prevStateJson === nextStateJson) return;
+
+    this.state = nextState;
     
     if (this.storageKey) {
       try {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+        localStorage.setItem(this.storageKey, nextStateJson);
       } catch (e) {
         console.error(`[Store] Failed to save state for key "${this.storageKey}":`, e);
       }

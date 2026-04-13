@@ -129,9 +129,15 @@ class ReminderStore extends Store<ReminderState> {
    * 섹션 자체를 삭제합니다. (isFixed가 아닐 때만)
    */
   deleteSection(sectionId: string) {
-    const nextSections = this.state.sections.filter(
-      (s) => s.isFixed || s.id !== sectionId
-    );
+    const nextSections = this.state.sections.filter((section) => {
+      // 1. 고정 섹션(Everyday, To Do)은 삭제 대상에서 제외 (항상 유지)
+      if (section.isFixed || section.id === 'EVERYDAY' || section.id === 'TODO') {
+        return true;
+      }
+      // 2. 고정 섹션이 아닌 경우, 요청받은 ID와 다를 때만 남김 (삭제 수행)
+      return section.id !== sectionId;
+    });
+
     this.setState({ sections: nextSections });
   }
 }
