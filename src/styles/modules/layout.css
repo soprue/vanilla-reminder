@@ -53,8 +53,8 @@
   width: 100%;
   padding: 10px 16px;
   border-radius: var(--radius-lg);
-  border: none;
-  background-color: var(--color-gray-lighter);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: var(--color-white);
   font-size: 14px;
   color: var(--color-black);
   outline: none;
@@ -64,16 +64,18 @@
 
 .search-input:focus {
   background-color: var(--color-white);
-  box-shadow: 0 0 0 1.5px var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .dark-mode .search-input {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: transparent;
   color: var(--color-white);
 }
 
 .dark-mode .search-input:focus {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-primary);
 }
 
 /* Empty Search State */

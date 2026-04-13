@@ -14,7 +14,8 @@ import plusIcon from '@assets/icons/plus.svg';
 interface ReminderState {
   addingSectionId: string | null;
   editingItemId: number | null; // 수정 중인 항목 ID
-  searchQuery: string; // 검색어 상태 추가
+  editingSectionId: string | null; // 수정 중인 섹션 ID 추가
+  searchQuery: string;
   showTimePopover: boolean;
   selectedTime: string;
   pickerAMPM: 'AM' | 'PM';
@@ -32,6 +33,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     this.state = {
       addingSectionId: null,
       editingItemId: null,
+      editingSectionId: null,
       searchQuery: '',
       showTimePopover: false,
       selectedTime: 'All Day',
@@ -48,11 +50,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
   componentDidUpdate() {
     // 추가 모드 또는 수정 모드일 때 포커스 처리
-    if ((this.state.addingSectionId || this.state.editingItemId) && !this.state.showTimePopover) {
-      const input = this.target.querySelector('.reminder-inline-input') as HTMLInputElement;
+    if ((this.state.addingSectionId || this.state.editingItemId || this.state.editingSectionId) && !this.state.showTimePopover) {
+      const input = this.target.querySelector('.reminder-inline-input, .section-title-input') as HTMLInputElement;
       if (input) {
         input.focus();
-        // 텍스트 끝으로 커서 이동 (수정 모드일 때 유용)
+        // 텍스트 끝으로 커서 이동
         const val = input.value;
         input.value = '';
         input.value = val;
@@ -81,7 +83,6 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       return;
     }
 
-    // 수정할 아이템을 찾아 현재 시간을 상태에 동기화
     const { sections } = reminderStore.getState();
     let foundItem = null;
     for (const section of sections) {
@@ -105,7 +106,8 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
       this.setState({ 
         editingItemId: reminderId,
-        addingSectionId: null, // 추가 모드 해제
+        addingSectionId: null,
+        editingSectionId: null,
         selectedTime: time,
         pickerAMPM: ampm,
         pickerHour: hour,
@@ -115,10 +117,26 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     }
   }
 
+  handleUpdateSectionTitle(sectionId: string, title: string) {
+    if (title.trim()) {
+      reminderStore.updateSectionTitle(sectionId, title);
+    }
+    this.setState({ editingSectionId: null });
+  }
+
+  setEditingSectionId(sectionId: string | null) {
+    this.setState({ 
+      editingSectionId: sectionId,
+      addingSectionId: null,
+      editingItemId: null
+    });
+  }
+
   setAddingSection(sectionId: string | null) {
     this.setState({ 
       addingSectionId: sectionId,
-      editingItemId: null, // 추가 모드 시 수정 모드 해제
+      editingItemId: null,
+      editingSectionId: null,
       showTimePopover: false,
       selectedTime: 'All Day'
     });
@@ -144,9 +162,6 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     });
   }
 
-  /**
-   * 실제 리마인더 데이터 추가
-   */
   handleAddReminder(e: KeyboardEvent, sectionId: string) {
     const input = e.target as HTMLInputElement;
     const text = input.value.trim();
@@ -177,7 +192,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId, editingItemId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, editingSectionId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
 
@@ -187,7 +202,10 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       items: section.items.filter(item => 
         item.text.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    })).filter(section => section.items.length > 0 || (section.id === addingSectionId && !searchQuery));
+    })).filter(section => {
+      if (!searchQuery) return true;
+      return section.items.length > 0 || section.id === addingSectionId;
+    });
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
@@ -218,6 +236,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                       items: section.items,
                       addingSectionId: addingSectionId,
                       editingItemId: editingItemId,
+                      isEditingTitle: editingSectionId === section.id,
                       showTimePopover: showTimePopover,
                       selectedTime: selectedTime,
                       pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
@@ -226,6 +245,8 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                       onUpdateItem: (reminderId: number, text: string) => this.handleUpdateReminder(section.id, reminderId, text),
                       onSetAddingSection: (id: string | null) => this.setAddingSection(id),
                       onSetEditingItem: (id: number | null) => this.setEditingItemId(id),
+                      onUpdateSectionTitle: (title: string) => this.handleUpdateSectionTitle(section.id, title),
+                      onSetEditingSection: (id: string | null) => this.setEditingSectionId(id),
                       onToggleTimePopover: () => this.toggleTimePopover(),
                       onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
                       onSetAllDay: () => this.setAllDay(),
