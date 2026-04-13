@@ -14,6 +14,7 @@ import plusIcon from '@assets/icons/plus.svg';
 interface ReminderState {
   addingSectionId: string | null;
   editingItemId: number | null; // 수정 중인 항목 ID
+  searchQuery: string; // 검색어 상태 추가
   showTimePopover: boolean;
   selectedTime: string;
   pickerAMPM: 'AM' | 'PM';
@@ -31,6 +32,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     this.state = {
       addingSectionId: null,
       editingItemId: null,
+      searchQuery: '',
       showTimePopover: false,
       selectedTime: 'All Day',
       pickerAMPM: 'AM',
@@ -160,6 +162,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     }
   }
 
+  handleSearch(e: Event) {
+    const target = e.target as HTMLInputElement;
+    this.setState({ searchQuery: target.value });
+  }
+
   handleLogout() {
     authStore.logout();
     this.router.navigate('/login');
@@ -170,9 +177,17 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId, editingItemId, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
+
+    // 검색어에 따른 필터링 로직
+    const filteredSections = sections.map(section => ({
+      ...section,
+      items: section.items.filter(item => 
+        item.text.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })).filter(section => section.items.length > 0 || (section.id === addingSectionId && !searchQuery));
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
@@ -183,34 +198,56 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
         })}
 
         <div class="reminder-list-wrapper">
-          <div class="sections-container">
-            ${sections.map((section) =>
-              ReminderSection({
-                title: section.title,
-                category: section.id,
-                items: section.items,
-                addingSectionId: addingSectionId,
-                editingItemId: editingItemId,
-                showTimePopover: showTimePopover,
-                selectedTime: selectedTime,
-                pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
-                onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
-                onDeleteItem: (reminderId: number) => this.handleDeleteReminder(section.id, reminderId),
-                onUpdateItem: (reminderId: number, text: string) => this.handleUpdateReminder(section.id, reminderId, text),
-                onSetAddingSection: (id: string | null) => this.setAddingSection(id),
-                onSetEditingItem: (id: number | null) => this.setEditingItemId(id),
-                onToggleTimePopover: () => this.toggleTimePopover(),
-                onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
-                onSetAllDay: () => this.setAllDay(),
-                onAddItem: (e: KeyboardEvent) => this.handleAddReminder(e, section.id),
-                onDeleteSection: () => this.handleDeleteSection(section.id),
-              })
-            )}
+          <div class="search-bar-container">
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="검색어를 입력하세요..." 
+              value="${searchQuery}"
+              oninput="${this.handleSearch.bind(this)}"
+            />
           </div>
 
-          <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
-            <img src="${plusIcon}" alt="add" />
-          </button>
+          <div class="sections-container">
+            ${
+              filteredSections.length > 0
+                ? filteredSections.map((section) =>
+                    ReminderSection({
+                      title: section.title,
+                      category: section.id,
+                      items: section.items,
+                      addingSectionId: addingSectionId,
+                      editingItemId: editingItemId,
+                      showTimePopover: showTimePopover,
+                      selectedTime: selectedTime,
+                      pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
+                      onToggleItem: (reminderId: number) => this.handleToggleReminder(section.id, reminderId),
+                      onDeleteItem: (reminderId: number) => this.handleDeleteReminder(section.id, reminderId),
+                      onUpdateItem: (reminderId: number, text: string) => this.handleUpdateReminder(section.id, reminderId, text),
+                      onSetAddingSection: (id: string | null) => this.setAddingSection(id),
+                      onSetEditingItem: (id: number | null) => this.setEditingItemId(id),
+                      onToggleTimePopover: () => this.toggleTimePopover(),
+                      onUpdatePicker: (key: any, val: any) => this.updatePickerTime(key, val),
+                      onSetAllDay: () => this.setAllDay(),
+                      onAddItem: (e: KeyboardEvent) => this.handleAddReminder(e, section.id),
+                      onDeleteSection: () => this.handleDeleteSection(section.id),
+                    })
+                  )
+                : jsx`
+                  <div class="empty-search-state">
+                    <p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p>
+                  </div>
+                `
+            }
+          </div>
+
+          ${
+            !searchQuery ? jsx`
+              <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
+                <img src="${plusIcon}" alt="add" />
+              </button>
+            ` : ''
+          }
         </div>
       </div>
     `;
