@@ -71,6 +71,9 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   handleUpdateReminder(sectionId: string, reminderId: number, text: string) {
+    // 이미 수정 중인 상태가 아니라면 (중복 호출 방지)
+    if (this.state.editingItemId !== reminderId) return;
+
     if (text.trim()) {
       reminderStore.updateReminder(sectionId, reminderId, text, this.state.selectedTime);
     }
@@ -118,6 +121,9 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   handleUpdateSectionTitle(sectionId: string, title: string) {
+    // 이미 수정 중인 상태가 아니라면 (중복 호출 방지)
+    if (this.state.editingSectionId !== sectionId) return;
+
     if (title.trim()) {
       reminderStore.updateSectionTitle(sectionId, title);
     }
@@ -163,6 +169,9 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   handleAddReminder(e: KeyboardEvent, sectionId: string) {
+    // 이미 추가 중인 상태가 아니라면 (중복 호출 방지)
+    if (this.state.addingSectionId !== sectionId) return;
+
     const input = e.target as HTMLInputElement;
     const text = input.value.trim();
     if (!text) return;
@@ -195,6 +204,11 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     const { addingSectionId, editingItemId, editingSectionId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
+    const isSaving = reminderStore.isSaving; // 저장 상태 가져오기
+
+    // [중요] 수정 중이거나 추가 중일 때는 필터링을 잠시 멈춤 (데이터 유실 오해 방지)
+    const isEditingAny = !!(addingSectionId || editingItemId || editingSectionId);
+    const isSearching = searchQuery.trim().length > 0;
 
     // 1. 검색어로 아이템 필터링
     const sectionsWithMatches = sections.map(section => ({
@@ -204,13 +218,13 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       )
     }));
 
-    // 2. 검색 중인지, 실제로 매칭되는 아이템이 있는지 확인
-    const isSearching = searchQuery.trim().length > 0;
+    // 2. 실제로 매칭되는 아이템이 있는지 확인
     const hasAnyMatches = sectionsWithMatches.some(s => s.items.length > 0);
 
     // 3. 렌더링할 섹션 결정
     const visibleSections = sectionsWithMatches.filter(section => {
-      if (!isSearching) return true; // 검색 안 할 때는 모든 섹션(Work 포함) 표시
+      if (isEditingAny) return true; // 수정 중일 때는 모든 섹션 표시
+      if (!isSearching) return true; // 검색 안 할 때는 모든 섹션 표시
       return section.items.length > 0; // 검색 중일 때는 매칭된 아이템이 있는 섹션만 표시
     });
 
@@ -223,7 +237,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
         })}
 
         <div class="reminder-list-wrapper">
-          <div class="search-bar-container">
+          <div class="search-bar-container" style="position: relative;">
             <input 
               type="text" 
               class="search-input" 
@@ -231,11 +245,16 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
               value="${searchQuery}"
               oninput="${this.handleSearch.bind(this)}"
             />
+            ${
+              isSaving 
+                ? jsx`<div class="save-indicator">저장 중...</div>` 
+                : jsx`<div class="save-indicator saved">저장됨</div>`
+            }
           </div>
 
           <div class="sections-container">
             ${
-              isSearching && !hasAnyMatches
+              isSearching && !hasAnyMatches && !isEditingAny
                 ? jsx`
                   <div class="empty-search-state">
                     <p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p>
@@ -270,7 +289,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
           </div>
 
           ${
-            !isSearching ? jsx`
+            !isSearching && !isEditingAny ? jsx`
               <button class="plus-btn-container" onclick="${() => reminderStore.addSection('New Section')}">
                 <img src="${plusIcon}" alt="add" />
               </button>

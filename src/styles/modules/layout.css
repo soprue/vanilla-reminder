@@ -67,6 +67,31 @@
   border-color: var(--color-primary);
 }
 
+/* Save Indicator */
+.save-indicator {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  pointer-events: none;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.save-indicator.saved {
+  color: var(--color-gray-medium);
+  animation: fade-out 2s forwards;
+}
+
+@keyframes fade-out {
+  0% { opacity: 0.6; }
+  70% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
 .dark-mode .search-input {
   background-color: rgba(255, 255, 255, 0.06);
   border-color: transparent;
