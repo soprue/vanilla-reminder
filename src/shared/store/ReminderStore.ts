@@ -115,6 +115,17 @@ class ReminderStore extends Store<ReminderState> {
   }
 
   /**
+   * 섹션의 제목을 업데이트합니다.
+   */
+  updateSectionTitle(sectionId: string, title: string) {
+    const nextSections = this.state.sections.map((section) => {
+      if (section.id !== sectionId) return section;
+      return { ...section, title };
+    });
+    this.setState({ sections: nextSections });
+  }
+
+  /**
    * 섹션 자체를 삭제합니다. (isFixed가 아닐 때만)
    */
   deleteSection(sectionId: string) {

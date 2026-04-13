@@ -9,6 +9,7 @@ interface ReminderSectionProps {
   items: any[];
   addingSectionId: string | null;
   editingItemId: number | null;
+  isEditingTitle: boolean; // 제목 수정 여부 추가
   showTimePopover: boolean;
   selectedTime: string;
   pickerState: { ampm: string; hour: string; minute: string };
@@ -17,6 +18,8 @@ interface ReminderSectionProps {
   onUpdateItem: (id: number, text: string) => void;
   onSetAddingSection: (id: string | null) => void;
   onSetEditingItem: (id: number | null) => void;
+  onUpdateSectionTitle: (title: string) => void; // 제목 업데이트 핸들러
+  onSetEditingSection: (id: string | null) => void; // 제목 수정 시작 핸들러
   onToggleTimePopover: () => void;
   onUpdatePicker: (key: string, val: string) => void;
   onSetAllDay: () => void;
@@ -33,6 +36,7 @@ export const ReminderSection = ({
   items,
   addingSectionId,
   editingItemId,
+  isEditingTitle,
   showTimePopover,
   selectedTime,
   pickerState,
@@ -41,6 +45,8 @@ export const ReminderSection = ({
   onUpdateItem,
   onSetAddingSection,
   onSetEditingItem,
+  onUpdateSectionTitle,
+  onSetEditingSection,
   onToggleTimePopover,
   onUpdatePicker,
   onSetAllDay,
@@ -62,11 +68,34 @@ export const ReminderSection = ({
   return jsx`
     <section class="section-card">
       <div class="section-header">
-        <h2 class="section-title">${title}</h2>
+        ${
+          isEditingTitle && !isFixed
+            ? jsx`
+              <input 
+                type="text" 
+                class="section-title-input" 
+                value="${title}"
+                onkeydown="${(e: KeyboardEvent) => {
+                  if (e.key === 'Enter') onUpdateSectionTitle((e.target as HTMLInputElement).value);
+                  else if (e.key === 'Escape') onSetEditingSection(null);
+                }}"
+                onblur="${(e: FocusEvent) => onUpdateSectionTitle((e.target as HTMLInputElement).value)}"
+              />
+            `
+            : jsx`
+              <h2 
+                class="section-title ${!isFixed ? 'editable' : ''}" 
+                onclick="${() => !isFixed && onSetEditingSection(category)}"
+                title="${!isFixed ? '클릭하여 이름 수정' : ''}"
+              >
+                ${title}
+              </h2>
+            `
+        }
         ${
           !isFixed
             ? jsx`
-          <button class="section-delete-btn" onclick="${onDeleteSection}">
+          <button class="section-delete-btn" onclick="${onDeleteSection}" title="섹션 삭제">
             <img src="${minusSquareIcon}" alt="delete" />
           </button>
         `
@@ -163,7 +192,7 @@ export const ReminderSection = ({
                                }}">${opt}</div>
                         `
                         )}
-                        <div class="mini-item"></div>
+                        <div class="mini-item)</div>
                       </div>
                       <div class="mini-column">
                         <div class="mini-item"></div>
