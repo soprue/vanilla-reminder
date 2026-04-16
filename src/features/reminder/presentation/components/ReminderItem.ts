@@ -3,7 +3,7 @@ import clockIcon from '@assets/icons/clock.svg';
 import { reminderService } from '../ReminderService';
 
 interface ReminderItemProps {
-  sectionId: string; // 섹션 ID 추가
+  sectionId: string;
   item: {
     id: number;
     text: string;
@@ -21,9 +21,6 @@ interface ReminderItemProps {
  */
 const EditMode = (props: ReminderItemProps) => {
   const { sectionId, item, selectedTime, pickerState, showTimePopover } = props;
-  const ampmOptions = ['AM', 'PM'];
-  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
   return jsx`
     <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}" style="margin-bottom: 8px;">
@@ -42,7 +39,14 @@ const EditMode = (props: ReminderItemProps) => {
           onblur="${(e: FocusEvent) => {
             const container = (e.target as HTMLElement).closest('.input-area-wrapper');
             if (container && container.contains(e.relatedTarget as Node)) return;
-            setTimeout(() => reminderService.handleUpdateReminder(sectionId, item.id, (e.target as HTMLInputElement).value), 150);
+            
+            // 리렌더링 대응: 지연 후 포커스 상태 재확인
+            setTimeout(() => {
+              const activeEl = document.activeElement;
+              const isStillInInput = activeEl && (activeEl.classList.contains('reminder-inline-input') || activeEl.classList.contains('section-title-input'));
+              if (isStillInInput) return;
+              reminderService.handleUpdateReminder(sectionId, item.id, (e.target as HTMLInputElement).value);
+            }, 250);
           }}"
         />
         <button type="button" class="time-badge ${selectedTime !== 'All Day' ? 'active' : ''}" onclick="${() => reminderService.toggleTimePopover()}">
@@ -57,23 +61,17 @@ const EditMode = (props: ReminderItemProps) => {
           <div class="mini-picker-columns">
             <div class="mini-column">
               <div class="mini-item"></div>
-              ${ampmOptions.map(opt => jsx`
-                <div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerAMPM', opt); reminderService.toggleTimePopover(); }}">${opt}</div>
-              `)}
+              ${['AM', 'PM'].map(opt => jsx`<div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerAMPM', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
               <div class="mini-item"></div>
             </div>
             <div class="mini-column">
               <div class="mini-item"></div>
-              ${hourOptions.map(opt => jsx`
-                <div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerHour', opt); reminderService.toggleTimePopover(); }}">${opt}</div>
-              `)}
+              ${Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(opt => jsx`<div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerHour', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
               <div class="mini-item"></div>
             </div>
             <div class="mini-column">
               <div class="mini-item"></div>
-              ${minuteOptions.map(opt => jsx`
-                <div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerMinute', opt); reminderService.toggleTimePopover(); }}">${opt}</div>
-              `)}
+              ${Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(opt => jsx`<div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerMinute', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
               <div class="mini-item"></div>
             </div>
           </div>

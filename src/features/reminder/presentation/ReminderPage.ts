@@ -111,7 +111,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
             }
           </div>
 
-          ${!isSearching && !isEditingAny ? jsx`
+          ${!isSearching ? jsx`
             <button class="plus-btn-container" onclick="${() => reminderService.addSection()}">
               <img src="${plusIcon}" alt="add" />
             </button>

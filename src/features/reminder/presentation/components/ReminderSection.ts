@@ -29,7 +29,14 @@ const SectionHeader = ({ title, category, isEditingTitle, isFixed }: any) => {
             if (e.key === 'Enter') reminderService.handleUpdateSectionTitle(category, (e.target as HTMLInputElement).value);
             else if (e.key === 'Escape') reminderService.setEditingSectionId(null);
           }}"
-          onblur="${(e: FocusEvent) => setTimeout(() => reminderService.handleUpdateSectionTitle(category, (e.target as HTMLInputElement).value), 100)}"
+          onblur="${(e: FocusEvent) => {
+            // 리렌더링 시 포커스 유실 방지: 0.2초 후에도 포커스가 입력창이 아닐 때만 저장/닫기
+            setTimeout(() => {
+              const activeEl = document.activeElement;
+              if (activeEl && (activeEl.classList.contains('section-title-input') || activeEl.classList.contains('reminder-inline-input'))) return;
+              reminderService.handleUpdateSectionTitle(category, (e.target as HTMLInputElement).value);
+            }, 200);
+          }}"
         />
       </div>
     `;
@@ -60,10 +67,6 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
     `;
   }
 
-  const ampmOptions = ['AM', 'PM'];
-  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
-
   return jsx`
     <div class="section-footer">
       <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}">
@@ -74,7 +77,16 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
             onblur="${(e: FocusEvent) => {
               const container = (e.target as HTMLElement).closest('.input-area-wrapper');
               if (container && container.contains(e.relatedTarget as Node)) return;
-              setTimeout(() => reminderService.setAddingSection(null), 200);
+              
+              // 리렌더링 대응: 지연 후 현재 포커스된 요소가 여전히 입력창 계열인지 확인
+              setTimeout(() => {
+                const activeEl = document.activeElement;
+                const isStillInInput = activeEl && (activeEl.classList.contains('reminder-inline-input') || activeEl.classList.contains('section-title-input'));
+                const isTimePicker = activeEl && activeEl.closest('.time-popover-box');
+                
+                if (isStillInInput || isTimePicker) return;
+                reminderService.setAddingSection(null);
+              }, 250);
             }}"
           />
           <button type="button" class="time-badge ${selectedTime !== 'All Day' ? 'active' : ''}" onclick="${() => reminderService.toggleTimePopover()}">
@@ -89,17 +101,17 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
             <div class="mini-picker-columns">
               <div class="mini-column">
                 <div class="mini-item"></div>
-                ${ampmOptions.map(opt => jsx`<div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerAMPM', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
+                ${['AM', 'PM'].map(opt => jsx`<div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerAMPM', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
                 <div class="mini-item"></div>
               </div>
               <div class="mini-column">
                 <div class="mini-item"></div>
-                ${hourOptions.map(opt => jsx`<div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerHour', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
+                ${Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(opt => jsx`<div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerHour', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
                 <div class="mini-item"></div>
               </div>
               <div class="mini-column">
                 <div class="mini-item"></div>
-                ${minuteOptions.map(opt => jsx`<div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerMinute', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
+                ${Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(opt => jsx`<div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => { reminderService.updatePickerTime('pickerMinute', opt); reminderService.toggleTimePopover(); }}">${opt}</div>`)}
                 <div class="mini-item"></div>
               </div>
             </div>
