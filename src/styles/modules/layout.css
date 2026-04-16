@@ -19,6 +19,11 @@
   flex-shrink: 0;
   z-index: 100;
   transition: background-color var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--spacing-lg) 0; /* 위아래 균형 잡힌 패딩 추가 */
+  box-sizing: border-box;
 }
 
 .reminder-list-wrapper {
@@ -43,14 +48,21 @@
   border-radius: var(--radius-sm);
 }
 
-/* Search Bar */
+/* Search Bar & Filters */
 .search-bar-container {
   padding: 0 var(--spacing-md);
   margin-bottom: var(--spacing-sm);
 }
 
-.search-input {
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
+}
+
+.search-input {
+  flex: 1;
   padding: 10px 16px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(0, 0, 0, 0.04);
@@ -67,7 +79,36 @@
   border-color: var(--color-primary);
 }
 
-/* Floating Save Toast (Bottom Right) */
+.filter-toggle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: var(--color-white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn:hover {
+  background-color: var(--color-gray-lighter);
+}
+
+.filter-toggle-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.filter-icon {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Save Indicator Toast */
 .save-status-toast {
   position: fixed;
   bottom: 24px;
@@ -152,6 +193,30 @@
   color: #27ae60;
 }
 
+/* Dark Mode Overrides */
+.dark-mode .search-input,
+.dark-mode .filter-toggle-btn {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #eeeeee; /* 아이콘 색상을 밝게 변경 */
+}
+
+.dark-mode .search-input:focus {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-primary);
+}
+
+.dark-mode .filter-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .filter-toggle-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff; /* 활성화 시 아이콘을 완전한 흰색으로 */
+}
+
 .dark-mode .save-status-toast {
   background: rgba(30, 30, 30, 0.8);
   border-color: rgba(255, 255, 255, 0.1);
@@ -160,17 +225,6 @@
 
 .dark-mode .save-text {
   color: #bbbbbb;
-}
-
-.dark-mode .search-input {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: transparent;
-  color: var(--color-white);
-}
-
-.dark-mode .search-input:focus {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-primary);
 }
 
 /* Empty Search State */
@@ -189,18 +243,20 @@
 }
 
 /* Sidebar Specifics */
+.sidemenu-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .logo-img {
   width: 25px;
   height: 25px;
-  margin: var(--spacing-lg) auto;
+  margin: 0 auto; /* 상하 마진 제거, 패딩으로 대체됨 */
   display: block;
 }
 
 .sidemenu-buttons {
-  position: absolute;
-  bottom: var(--spacing-lg);
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -222,7 +278,7 @@
 .icon-mask {
   width: 18px;
   height: 18px;
-  background-color: var(--color-icon-brown); /* 이 색상이 아이콘 색상이 됨 */
+  background-color: var(--color-icon-brown);
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;

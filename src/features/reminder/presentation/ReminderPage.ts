@@ -15,6 +15,7 @@ interface ReminderState {
   editingItemId: number | null;
   editingSectionId: string | null;
   searchQuery: string;
+  hideCompleted: boolean; // 필터: 완료된 항목 숨기기 (유지)
   showTimePopover: boolean;
   selectedTime: string;
   pickerAMPM: 'AM' | 'PM';
@@ -34,6 +35,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       editingItemId: null,
       editingSectionId: null,
       searchQuery: '',
+      hideCompleted: false,
       showTimePopover: false,
       selectedTime: 'All Day',
       pickerAMPM: 'AM',
@@ -55,8 +57,12 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     }
   }
 
+  toggleHideCompleted() {
+    this.setState({ hideCompleted: !this.state.hideCompleted });
+  }
+
   render() {
-    const { addingSectionId, editingItemId, editingSectionId, searchQuery, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, editingSectionId, searchQuery, hideCompleted, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
     const isSaving = reminderStore.isSaving;
@@ -64,22 +70,30 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
     const isEditingAny = !!(addingSectionId || editingItemId || editingSectionId);
     const isSearching = searchQuery.trim().length > 0;
 
-    // 검색 필터링 로직
-    const sectionsWithMatches = sections.map(s => ({
-      ...s, items: s.items.filter(item => item.text.toLowerCase().includes(searchQuery.toLowerCase()))
-    }));
-    const hasAnyMatches = sectionsWithMatches.some(s => s.items.length > 0);
-    const visibleSections = sectionsWithMatches.filter(s => isEditingAny || !isSearching || s.items.length > 0);
+    // 통합 필터링 로직
+    const filteredSections = sections
+      .map(section => ({
+        ...section,
+        items: section.items.filter(item => {
+          const matchSearch = item.text.toLowerCase().includes(searchQuery.toLowerCase());
+          const matchStatus = !hideCompleted || !item.done;
+          return matchSearch && matchStatus;
+        })
+      }))
+      .filter(section => {
+        if (isEditingAny) return true;
+        // 검색 중일 때만 검색 결과가 있는 섹션으로 필터링
+        if (isSearching) return section.items.length > 0;
+        // 검색 중이 아닐 때는 모든 섹션(Work 등 빈 섹션 포함) 유지
+        return true;
+      });
+
+    const hasAnyMatches = filteredSections.some(s => s.items.length > 0);
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
-        <!-- 우측 하단 플로팅 저장 인디케이터 -->
         <div class="save-status-toast ${isSaving ? 'visible saving' : 'saved'}">
-          <div class="save-icon-wrapper">
-            ${isSaving 
-              ? jsx`<div class="spinner-dot"></div>` 
-              : jsx`<span class="check-icon">✓</span>`}
-          </div>
+          <div class="save-icon-wrapper">${isSaving ? jsx`<div class="spinner-dot"></div>` : jsx`<span class="check-icon">✓</span>`}</div>
           <span class="save-text">${isSaving ? '저장 중...' : '저장 완료'}</span>
         </div>
 
@@ -91,23 +105,28 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
         <div class="reminder-list-wrapper">
           <div class="search-bar-container">
-            <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${(e: Event) => reminderService.handleSearch(e)}" />
+            <div class="search-input-wrapper">
+              <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${(e: Event) => reminderService.handleSearch(e)}" />
+              <button class="filter-toggle-btn ${hideCompleted ? 'active' : ''}" onclick="${() => this.toggleHideCompleted()}" title="완료된 항목 숨기기">
+                <span class="filter-icon">✓</span>
+              </button>
+            </div>
           </div>
 
           <div class="sections-container">
             ${isSearching && !hasAnyMatches && !isEditingAny
-              ? jsx`<div class="empty-search-state"><p class="empty-message">"${searchQuery}"에 대한 검색 결과가 없습니다.</p></div>`
-              : visibleSections.map((section) => ReminderSection({
-                  title: section.title,
-                  category: section.id,
-                  items: section.items,
-                  addingSectionId,
-                  editingItemId,
-                  isEditingTitle: editingSectionId === section.id,
-                  showTimePopover,
-                  selectedTime,
-                  pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
-                }))
+                ? jsx`<div class="empty-search-state"><p class="empty-message">해당하는 리마인더가 없습니다.</p></div>`
+                : filteredSections.map((section) => ReminderSection({
+                    title: section.title,
+                    category: section.id,
+                    items: section.items,
+                    addingSectionId,
+                    editingItemId,
+                    isEditingTitle: editingSectionId === section.id,
+                    showTimePopover,
+                    selectedTime,
+                    pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
+                  }))
             }
           </div>
 
