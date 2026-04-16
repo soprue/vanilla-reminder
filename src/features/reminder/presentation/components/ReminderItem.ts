@@ -1,7 +1,9 @@
 import jsx from '@core/JSX';
 import clockIcon from '@assets/icons/clock.svg';
+import { reminderService } from '../ReminderService';
 
 interface ReminderItemProps {
+  sectionId: string;
   item: {
     id: number;
     text: string;
@@ -12,163 +14,132 @@ interface ReminderItemProps {
   showTimePopover: boolean;
   selectedTime: string;
   pickerState: { ampm: string; hour: string; minute: string };
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onUpdate: (id: number, text: string) => void;
-  onStartEdit: (id: number | null) => void;
-  onToggleTimePopover: () => void;
-  onUpdatePicker: (key: string, val: string) => void;
-  onSetAllDay: () => void;
 }
+
+/**
+ * 시간 선택 피커 팝오버 (중복 제거를 위해 추출 가능하지만 각 컴포넌트 특성에 맞게 유지)
+ */
+const TimePickerPopover = ({ pickerState }: any) => {
+  const ampmOptions = ['AM', 'PM'];
+  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+
+  const updateTime = (key: any, val: string) => {
+    reminderService.updatePickerTime(key, val);
+    reminderService.toggleTimePopover();
+  };
+
+  return jsx`
+    <div class="time-popover-box" style="top: 36px;">
+      <div class="popover-all-day" onclick="${(e: Event) => { e.stopPropagation(); reminderService.setAllDay(); }}">☀️ All Day 로 설정</div>
+      <div class="mini-picker-columns">
+        <div class="mini-column">
+          <div class="mini-item"></div>
+          ${ampmOptions.map(opt => jsx`<div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerAMPM', opt)}">${opt}</div>`)}
+          <div class="mini-item"></div>
+        </div>
+        <div class="mini-column">
+          <div class="mini-item"></div>
+          ${hourOptions.map(opt => jsx`<div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerHour', opt)}">${opt}</div>`)}
+          <div class="mini-item"></div>
+        </div>
+        <div class="mini-column">
+          <div class="mini-item"></div>
+          ${minuteOptions.map(opt => jsx`<div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerMinute', opt)}">${opt}</div>`)}
+          <div class="mini-item"></div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+/**
+ * 수정 모드 UI 렌더링
+ */
+const EditMode = (props: ReminderItemProps) => {
+  const { sectionId, item, selectedTime, pickerState, showTimePopover } = props;
+
+  const onEnter = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') reminderService.handleUpdateReminder(sectionId, item.id, (e.target as HTMLInputElement).value);
+    else if (e.key === 'Escape') reminderService.setEditingItemId(null);
+  };
+
+  const onBlur = (e: FocusEvent) => {
+    const container = (e.target as HTMLElement).closest('.input-area-wrapper');
+    if (container && container.contains(e.relatedTarget as Node)) return;
+    
+    setTimeout(() => {
+      const activeEl = document.activeElement;
+      const isStillInInput = activeEl && (activeEl.classList.contains('reminder-inline-input') || activeEl.classList.contains('section-title-input'));
+      if (isStillInInput) return;
+      reminderService.handleUpdateReminder(sectionId, item.id, (e.target as HTMLInputElement).value);
+    }, 250);
+  };
+
+  const badgeClass = `time-badge ${selectedTime !== 'All Day' ? 'active' : ''}`;
+  const checkboxClass = `checkbox-rect ${item.done ? 'done' : ''}`;
+
+  return jsx`
+    <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}" style="margin-bottom: 8px;">
+      <div class="input-container">
+        <div class="${checkboxClass}">
+          ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
+        </div>
+        <input type="text" class="reminder-inline-input" value="${item.text}" onkeydown="${onEnter}" onblur="${onBlur}" />
+        <button type="button" class="${badgeClass}" onclick="${() => reminderService.toggleTimePopover()}">
+          <img src="${clockIcon}" alt="time" class="time-icon" />
+          <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
+        </button>
+      </div>
+      ${showTimePopover ? TimePickerPopover({ pickerState }) : ''}
+    </form>
+  `;
+};
+
+/**
+ * 일반 모드 UI 렌더링
+ */
+const ViewMode = (props: ReminderItemProps) => {
+  const { sectionId, item } = props;
+  
+  const toggleDone = (e: MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    reminderService.handleToggleReminder(sectionId, item.id);
+  };
+
+  const startEdit = () => reminderService.setEditingItemId(item.id);
+  const deleteItem = (e: MouseEvent) => {
+    e.stopPropagation();
+    reminderService.handleDeleteReminder(sectionId, item.id);
+  };
+
+  const rowClass = "reminder-row";
+  const checkboxClass = `checkbox-rect ${item.done ? 'done' : ''}`;
+  const textClass = `text-main ${item.done ? 'text-done' : ''}`;
+  const timeClass = `text-time ${item.done ? 'text-done' : ''}`;
+
+  return jsx`
+    <div class="${rowClass}" ondblclick="${startEdit}">
+      <div class="${checkboxClass}" onclick="${toggleDone}">
+        ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
+      </div>
+      
+      <div class="item-content" onclick="${toggleDone}" style="cursor: pointer; flex: 1;">
+        <p class="${textClass}">${item.text}</p>
+        ${item.time ? jsx`<span class="${timeClass}">${item.time}</span>` : ''}
+      </div>
+
+      <div class="item-actions">
+        <button class="edit-item-btn" onclick="${(e: MouseEvent) => { e.stopPropagation(); startEdit(); }}" title="수정">✎</button>
+        <button class="delete-item-btn" onclick="${deleteItem}" title="삭제">×</button>
+      </div>
+    </div>
+  `;
+};
 
 /**
  * 개별 리마인더 항목을 렌더링하는 컴포넌트
  */
-export const ReminderItem = ({ 
-  item, 
-  isEditing,
-  showTimePopover,
-  selectedTime,
-  pickerState,
-  onToggle, 
-  onDelete, 
-  onUpdate, 
-  onStartEdit,
-  onToggleTimePopover,
-  onUpdatePicker,
-  onSetAllDay,
-}: ReminderItemProps) => {
-  if (isEditing) {
-    const ampmOptions = ['AM', 'PM'];
-    const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-    const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
-
-    return jsx`
-      <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}" style="margin-bottom: 8px;">
-        <div class="input-container">
-          <div class="checkbox-rect ${item.done ? 'done' : ''}">
-            ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
-          </div>
-          <input 
-            type="text" 
-            class="reminder-inline-input" 
-            value="${item.text}"
-            onkeydown="${(e: KeyboardEvent) => {
-              if (e.key === 'Enter') {
-                onUpdate(item.id, (e.target as HTMLInputElement).value);
-              } else if (e.key === 'Escape') {
-                onStartEdit(null);
-              }
-            }}"
-            onblur="${(e: FocusEvent) => {
-              const container = (e.target as HTMLElement).closest('.input-area-wrapper');
-              if (container && container.contains(e.relatedTarget as Node)) return;
-              setTimeout(() => onUpdate(item.id, (e.target as HTMLInputElement).value), 150);
-            }}"
-          />
-          <button
-            type="button"
-            class="time-badge ${selectedTime !== 'All Day' ? 'active' : ''}"
-            onclick="${onToggleTimePopover}"
-          >
-            <img src="${clockIcon}" alt="time" class="time-icon" />
-            <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
-          </button>
-        </div>
-
-        ${
-          showTimePopover
-            ? jsx`
-          <div class="time-popover-box" style="top: 36px;">
-            <div class="popover-all-day" onclick="${(e: Event) => {
-              e.stopPropagation();
-              onSetAllDay();
-            }}">☀️ All Day 로 설정</div>
-            <div class="mini-picker-columns">
-              <div class="mini-column">
-                <div class="mini-item"></div>
-                ${ampmOptions.map(opt => jsx`
-                  <div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" 
-                       onclick="${() => { onUpdatePicker('pickerAMPM', opt); onToggleTimePopover(); }}">${opt}</div>
-                `)}
-                <div class="mini-item"></div>
-              </div>
-              <div class="mini-column">
-                <div class="mini-item"></div>
-                ${hourOptions.map(opt => jsx`
-                  <div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" 
-                       onclick="${() => { onUpdatePicker('pickerHour', opt); onToggleTimePopover(); }}">${opt}</div>
-                `)}
-                <div class="mini-item"></div>
-              </div>
-              <div class="mini-column">
-                <div class="mini-item"></div>
-                ${minuteOptions.map(opt => jsx`
-                  <div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" 
-                       onclick="${() => { onUpdatePicker('pickerMinute', opt); onToggleTimePopover(); }}">${opt}</div>
-                `)}
-                <div class="mini-item"></div>
-              </div>
-            </div>
-          </div>
-        `
-            : ''
-        }
-      </form>
-    `;
-  }
-
-  return jsx`
-    <div 
-      class="reminder-row" 
-      ondblclick="${() => onStartEdit(item.id)}"
-    >
-      <div 
-        class="checkbox-rect ${item.done ? 'done' : ''}" 
-        onclick="${(e: MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggle(item.id);
-        }}"
-      >
-        ${item.done ? jsx`<div class="icon-cancel-mask" style="pointer-events: none;"></div>` : ''}
-      </div>
-      
-      <div 
-        class="item-content" 
-        onclick="${(e: MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggle(item.id);
-        }}" 
-        style="cursor: pointer; flex: 1;"
-      >
-        <p class="text-main ${item.done ? 'text-done' : ''}">${item.text}</p>
-        ${item.time ? jsx`<span class="text-time ${item.done ? 'text-done' : ''}">${item.time}</span>` : ''}
-      </div>
-
-      <div class="item-actions">
-        <button 
-          class="edit-item-btn"
-          onclick="${(e: MouseEvent) => {
-            e.stopPropagation();
-            onStartEdit(item.id);
-          }}"
-          title="수정"
-        >
-          ✎
-        </button>
-        <button 
-          class="delete-item-btn"
-          onclick="${(e: MouseEvent) => {
-            e.stopPropagation();
-            if(confirm('이 항목을 삭제하시겠습니까?')) onDelete(item.id);
-          }}"
-          title="삭제"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-  `;
+export const ReminderItem = (props: ReminderItemProps) => {
+  return props.isEditing ? EditMode(props) : ViewMode(props);
 };

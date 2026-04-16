@@ -31,6 +31,31 @@
   letter-spacing: -0.02em;
 }
 
+.section-title.editable {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s;
+}
+
+.section-title.editable:hover {
+  background-color: rgba(231, 76, 50, 0.05);
+}
+
+.section-title-input {
+  font-weight: 700;
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--color-primary);
+  outline: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  letter-spacing: -0.02em;
+}
+
 .section-delete-btn {
   background: none;
   border: none;

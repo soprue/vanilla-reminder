@@ -130,33 +130,31 @@ export function createDOM(vNode: VNodeChild): Node {
 export function updateDOM($parent: Node, newNode: VNodeChild, oldNode: VNodeChild, index = 0) {
   if (!$parent) return;
 
-  if (oldNode === undefined) {
-    if (newNode) $parent.appendChild(createDOM(newNode));
-    return;
-  }
+  const $child = $parent.childNodes[index];
 
+  // 1. 노드 삭제 (새 노드가 없는 경우)
   if (!newNode) {
-    const $child = $parent.childNodes[index];
     if ($child) $parent.removeChild($child);
     return;
   }
 
-  if (isChanged(newNode, oldNode)) {
-    const $child = $parent.childNodes[index];
-    if ($child && $child.parentNode === $parent) {
-      $parent.replaceChild(createDOM(newNode), $child);
-    } else {
-      $parent.appendChild(createDOM(newNode));
-    }
+  // 2. 노드 생성 (기존 노드가 없는 경우)
+  if (oldNode === undefined || !$child) {
+    $parent.appendChild(createDOM(newNode));
     return;
   }
 
+  // 3. 노드 교체 (타입이 바뀌었거나 내용이 변한 경우)
+  if (isChanged(newNode, oldNode)) {
+    $parent.replaceChild(createDOM(newNode), $child);
+    return;
+  }
+
+  // 4. 노드 업데이트 (동일한 타입인 경우 속성 및 자식 비교)
   if (typeof newNode === 'object' && newNode !== null && typeof oldNode === 'object' && oldNode !== null) {
     const n = newNode as VNode;
     const o = oldNode as VNode;
     
-    // h 함수와 jsx에서 이미 flatten을 수행하므로 Fragment 타입은 여기서 일반 노드처럼 처리
-    const $child = $parent.childNodes[index] as HTMLElement;
     if ($child instanceof HTMLElement) {
       updateAttributes($child, o.props, n.props);
     }
@@ -199,5 +197,6 @@ function isChanged(n1: VNodeChild, n2: VNodeChild) {
   const v1 = n1 as VNode;
   const v2 = n2 as VNode;
   
+  // 타입이 다르면 변경된 것으로 간주
   return v1.type !== v2.type;
 }

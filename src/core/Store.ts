@@ -1,66 +1,86 @@
+import { DELAYS } from '@src/shared/constants';
+
 export type Listener = () => void;
 
 /**
  * 전역 상태 관리를 위한 Store 클래스
- * localStorage를 통한 데이터 영속성(Persistence)을 지원합니다.
  */
 export class Store<T extends object> {
   protected state: T;
   private storageKey: string | null;
   private listeners: Set<Listener> = new Set();
+  
+  private _isSaving = false;
+  private saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(initialState: T, storageKey: string | null = null) {
     this.storageKey = storageKey;
-    
-    // 1. 로컬 저장소에서 데이터 복구 시도
-    const savedState = this.storageKey ? localStorage.getItem(this.storageKey) : null;
-    
+    this.state = initialState;
+    this.loadInitialState();
+  }
+
+  get isSaving() { return this._isSaving; }
+
+  private async loadInitialState() {
+    if (!this.storageKey || typeof window === 'undefined' || !(window as any).api) return;
     try {
-      this.state = savedState ? JSON.parse(savedState) : initialState;
-    } catch (e) {
-      console.error(`[Store] Failed to parse saved state for key "${this.storageKey}":`, e);
-      this.state = initialState;
-    }
-  }
-
-  /**
-   * 현재 상태를 반환합니다.
-   */
-  getState(): T {
-    return this.state;
-  }
-
-  /**
-   * 상태를 업데이트하고 모든 구독자에게 알림을 보냅니다.
-   * storageKey가 설정되어 있다면 localStorage에 자동으로 저장합니다.
-   */
-  setState(newState: Partial<T>) {
-    this.state = { ...this.state, ...newState };
-    
-    if (this.storageKey) {
-      try {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.state));
-      } catch (e) {
-        console.error(`[Store] Failed to save state for key "${this.storageKey}":`, e);
+      const savedData = await (window as any).api.invoke('reminder:get-all', this.storageKey);
+      if (savedData) {
+        this.state = { ...this.state, ...savedData };
+        this.notify();
       }
+    } catch (e) {
+      console.error(`[Store] Load error:`, e);
     }
+  }
 
+  getState(): T { return this.state; }
+
+  setState(newState: Partial<T>) {
+    const nextState = { ...this.state, ...newState };
+    if (JSON.stringify(this.state) === JSON.stringify(nextState)) return;
+
+    this.state = nextState;
     this.notify();
+
+    if (this.storageKey) {
+      this.debounceSave();
+    }
   }
 
   /**
-   * 상태 변경을 구독합니다.
+   * [Refactor] 불변성을 유지하며 상태의 깊은 경로를 업데이트하는 유틸리티
    */
+  protected updateDeepState(updater: (state: T) => Partial<T>) {
+    this.setState(updater(this.state));
+  }
+
+  private debounceSave() {
+    if (this.saveTimeout) clearTimeout(this.saveTimeout);
+    this._isSaving = true;
+    this.notify();
+
+    this.saveTimeout = setTimeout(async () => {
+      if (!this.storageKey || !(window as any).api) return;
+      try {
+        await (window as any).api.invoke('reminder:save', {
+          key: this.storageKey,
+          data: this.state
+        });
+      } catch (err) {
+        console.error('[Store] Save failed:', err);
+      } finally {
+        this._isSaving = false;
+        this.notify();
+      }
+    }, DELAYS.SAVE_DEBOUNCE);
+  }
+
   subscribe(listener: Listener) {
     this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
+    return () => this.listeners.delete(listener);
   }
 
-  /**
-   * 등록된 모든 리스너를 실행합니다.
-   */
   private notify() {
     this.listeners.forEach((listener) => listener());
   }

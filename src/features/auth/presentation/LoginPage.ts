@@ -1,7 +1,7 @@
 import { Component, ComponentProps } from '@core/Component';
 import jsx from '@core/JSX';
-import { authStore } from '@src/shared/store/AuthStore';
-import { themeStore } from '@src/shared/store/ThemeStore';
+import { authStore } from '@src/features/auth/domain/AuthStore';
+import { themeStore } from '@src/shared/domain/ThemeStore';
 import { Router } from '@src/core/Router';
 
 // 아이콘 임포트
@@ -21,7 +21,8 @@ export default class LoginPage extends Component<ComponentProps> {
   }
 
   handleLogin() {
-    authStore.login('사용자');
+    // 실제 서비스라면 여기서 입력값을 검증하거나 OAuth 등을 처리
+    authStore.login('사용자', 'user@example.com');
     Router.getInstance().navigate('/');
   }
 
