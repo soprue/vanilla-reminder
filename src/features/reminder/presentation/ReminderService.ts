@@ -104,16 +104,16 @@ export class ReminderService {
 
     if (foundItem) {
       const time = foundItem.time || REMINDER_CONFIG.DEFAULT_TIME;
-      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
-      let hour = REMINDER_CONFIG.DEFAULT_HOUR;
-      let minute = REMINDER_CONFIG.DEFAULT_MINUTE;
+      let ampm: string = REMINDER_CONFIG.DEFAULT_AMPM;
+      let hour: string = REMINDER_CONFIG.DEFAULT_HOUR;
+      let minute: string = REMINDER_CONFIG.DEFAULT_MINUTE;
 
       if (time !== REMINDER_CONFIG.DEFAULT_TIME) {
         const [t, p] = time.split(' ');
         const [h, m] = t.split(':');
-        ampm = (p as 'AM' | 'PM') || REMINDER_CONFIG.DEFAULT_AMPM;
-        hour = h || REMINDER_CONFIG.DEFAULT_HOUR;
-        minute = m || REMINDER_CONFIG.DEFAULT_MINUTE;
+        ampm = p || REMINDER_CONFIG.DEFAULT_AMPM;
+        hour = h || (REMINDER_CONFIG.DEFAULT_HOUR as string);
+        minute = m || (REMINDER_CONFIG.DEFAULT_MINUTE as string);
       }
 
       this.component.setState({ 
