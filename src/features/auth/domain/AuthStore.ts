@@ -1,23 +1,21 @@
-import { Store } from '@src/core/Store';
+import { Store } from '@core/Store';
+import { STORAGE_KEYS } from '@src/shared/constants';
 
 interface AuthState {
   isLoggedIn: boolean;
-  user: { name: string } | null;
+  user: { name: string; email: string } | null;
 }
 
 class AuthStore extends Store<AuthState> {
   constructor() {
-    super({ 
-      isLoggedIn: false, 
-      user: null
-    }, 'vanilla_reminder_auth'); // 저장 키 추가
+    super({
+      isLoggedIn: false,
+      user: null,
+    }, STORAGE_KEYS.AUTH);
   }
 
-  login(name: string) {
-    this.setState({
-      isLoggedIn: true,
-      user: { name },
-    });
+  login(name: string, email: string) {
+    this.setState({ isLoggedIn: true, user: { name, email } });
   }
 
   logout() {

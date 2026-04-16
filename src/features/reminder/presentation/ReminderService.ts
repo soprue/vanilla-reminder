@@ -2,6 +2,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 import { authStore } from '@src/features/auth/domain/AuthStore';
 import { themeStore } from '@src/shared/domain/ThemeStore';
 import { Router } from '@core/Router';
+import { REMINDER_CONFIG } from '@src/shared/constants';
 
 /**
  * 리마인더 페이지의 모든 비즈니스 로직을 담당하는 서비스 클래스
@@ -84,7 +85,7 @@ export class ReminderService {
   }
 
   addSection() {
-    reminderStore.addSection('New Section');
+    reminderStore.addSection(REMINDER_CONFIG.NEW_SECTION_TITLE);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -102,17 +103,17 @@ export class ReminderService {
     const foundItem = sections.flatMap(s => s.items).find(it => it.id === reminderId);
 
     if (foundItem) {
-      const time = foundItem.time || 'All Day';
-      let ampm: 'AM' | 'PM' = 'AM';
-      let hour = '09';
-      let minute = '00';
+      const time = foundItem.time || REMINDER_CONFIG.DEFAULT_TIME;
+      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
+      let hour = REMINDER_CONFIG.DEFAULT_HOUR;
+      let minute = REMINDER_CONFIG.DEFAULT_MINUTE;
 
-      if (time !== 'All Day') {
+      if (time !== REMINDER_CONFIG.DEFAULT_TIME) {
         const [t, p] = time.split(' ');
         const [h, m] = t.split(':');
-        ampm = (p as 'AM' | 'PM') || 'AM';
-        hour = h || '09';
-        minute = m || '00';
+        ampm = (p as 'AM' | 'PM') || REMINDER_CONFIG.DEFAULT_AMPM;
+        hour = h || REMINDER_CONFIG.DEFAULT_HOUR;
+        minute = m || REMINDER_CONFIG.DEFAULT_MINUTE;
       }
 
       this.component.setState({ 
@@ -144,7 +145,7 @@ export class ReminderService {
       editingItemId: null,
       editingSectionId: null,
       showTimePopover: false,
-      selectedTime: 'All Day'
+      selectedTime: REMINDER_CONFIG.DEFAULT_TIME
     });
   }
 
@@ -185,7 +186,7 @@ export class ReminderService {
   setAllDay() {
     if (!this.component) return;
     this.component.setState({ 
-      selectedTime: 'All Day',
+      selectedTime: REMINDER_CONFIG.DEFAULT_TIME,
       showTimePopover: false 
     });
   }

@@ -1,4 +1,5 @@
-import { Store } from '@src/core/Store';
+import { Store } from '@core/Store';
+import { STORAGE_KEYS } from '@src/shared/constants';
 
 interface ThemeState {
   isDarkMode: boolean;
@@ -6,32 +7,16 @@ interface ThemeState {
 
 class ThemeStore extends Store<ThemeState> {
   constructor() {
-    // 1. 시스템 테마 설정을 초기값으로 사용 (저장된 값이 없을 때만 사용됨)
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // 초기 테마 설정: 로컬 스토리지에 없으면 시스템 설정 확인
+    const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    super({ 
-      isDarkMode: systemDark 
-    }, 'vanilla_reminder_theme'); // 저장 키 추가
-
-    // 2. 시스템 테마 변경 실시간 감지 리스너 등록
-    this.initSystemThemeListener();
-  }
-
-  private initSystemThemeListener() {
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    // 시스템 테마가 바뀌면 자동으로 스토어 상태 업데이트
-    darkModeMediaQuery.addEventListener('change', (e) => {
-      this.setState({ isDarkMode: e.matches });
-    });
+    super({
+      isDarkMode: systemDarkMode,
+    }, STORAGE_KEYS.THEME);
   }
 
   toggleDarkMode() {
-    this.setState({ isDarkMode: !this.getState().isDarkMode });
-  }
-
-  get isDarkMode() {
-    return this.getState().isDarkMode;
+    this.setState({ isDarkMode: !this.state.isDarkMode });
   }
 }
 

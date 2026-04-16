@@ -1,46 +1,46 @@
 import { Store } from '@core/Store';
 import { ReminderSectionData } from './reminder';
+import { STORAGE_KEYS, CATEGORIES } from '@src/shared/constants';
 
 interface ReminderState {
   sections: ReminderSectionData[];
 }
 
+/**
+ * 리마인더 데이터를 관리하는 스토어 클래스
+ */
 class ReminderStore extends Store<ReminderState> {
   constructor() {
-    super({
-      sections: [
-        {
-          id: 'EVERYDAY',
-          title: 'Everyday',
-          isFixed: true,
-          items: [
-            { id: 1, text: '약 먹기', time: '2:00 PM', done: true },
-            { id: 2, text: '알고리즘 문제 풀기', time: '4:00 PM', done: false },
-            { id: 3, text: '산책하기', time: '6:00 PM', done: false },
-          ],
-        },
-        {
-          id: 'TODO',
-          title: 'To Do',
-          isFixed: true,
-          items: [
-            { id: 4, text: '책 반납하기', time: 'All Day', done: false },
-            { id: 5, text: '편의점 택배 보내고 오기', time: '4:00 PM', done: false },
-          ],
-        },
-        {
-          id: 'WORK',
-          title: 'Work',
-          isFixed: false,
-          items: [],
-        },
-      ],
-    }, 'vanilla_reminder_data'); // 로컬 저장소 키
+    const initialSections: ReminderSectionData[] = [
+      { id: CATEGORIES.EVERYDAY, title: 'Everyday', isFixed: true, items: [
+        { id: 1, text: '약 먹기', time: '2:00 PM', done: true },
+        { id: 2, text: '알고리즘 문제 풀기', time: '4:00 PM', done: false },
+        { id: 3, text: '산책하기', time: '11:00 PM', done: true },
+      ]},
+      { id: CATEGORIES.TODO, title: 'To Do', isFixed: true, items: [
+        { id: 4, text: '책 반납하기', time: 'All Day', done: false },
+        { id: 5, text: '편의점 택배 보내고 오기', time: '4:00 PM', done: false },
+      ]},
+      { id: CATEGORIES.WORK, title: 'Work', isFixed: false, items: [] },
+    ];
+
+    super({ sections: initialSections }, STORAGE_KEYS.REMINDER);
   }
 
-  /**
-   * 새로운 섹션을 추가합니다.
-   */
+  /* -------------------------------------------------------------------------- */
+  /* Helper Methods (Encapsulation)                                             */
+  /* -------------------------------------------------------------------------- */
+
+  private updateSection(sectionId: string, updater: (section: ReminderSectionData) => ReminderSectionData) {
+    this.setState({
+      sections: this.state.sections.map(s => s.id === sectionId ? updater(s) : s)
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /* Public Actions                                                             */
+  /* -------------------------------------------------------------------------- */
+
   addSection(title: string) {
     const newSection: ReminderSectionData = {
       id: `SECTION_${Date.now()}`,
@@ -51,94 +51,42 @@ class ReminderStore extends Store<ReminderState> {
     this.setState({ sections: [...this.state.sections, newSection] });
   }
 
-  /**
-   * 특정 항목을 삭제합니다.
-   */
-  deleteReminder(sectionId: string, reminderId: number) {
-    const nextSections = this.state.sections.map((section) => {
-      if (section.id !== sectionId) return section;
-      return {
-        ...section,
-        items: section.items.filter((item) => item.id !== reminderId),
-      };
-    });
-    this.setState({ sections: nextSections });
-  }
-
-  /**
-   * 특정 항목의 완료 상태를 토글합니다.
-   */
-  toggleReminder(sectionId: string, reminderId: number) {
-    const nextSections = this.state.sections.map((section) => {
-      if (section.id !== sectionId) return section;
-      return {
-        ...section,
-        items: section.items.map((item) =>
-          item.id === reminderId ? { ...item, done: !item.done } : item
-        ),
-      };
-    });
-    this.setState({ sections: nextSections });
-  }
-
-  /**
-   * 섹션에 새로운 항목을 추가합니다.
-   */
-  addReminder(sectionId: string, text: string, time?: string) {
-    const nextSections = this.state.sections.map((section) => {
-      if (section.id !== sectionId) return section;
-      return {
-        ...section,
-        items: [
-          ...section.items,
-          { id: Date.now(), text, time, done: false },
-        ],
-      };
-    });
-    this.setState({ sections: nextSections });
-  }
-
-  /**
-   * 특정 항목의 내용을 업데이트합니다.
-   */
-  updateReminder(sectionId: string, reminderId: number, text: string, time?: string) {
-    const nextSections = this.state.sections.map((section) => {
-      if (section.id !== sectionId) return section;
-      return {
-        ...section,
-        items: section.items.map((item) =>
-          item.id === reminderId ? { ...item, text, time } : item
-        ),
-      };
-    });
-    this.setState({ sections: nextSections });
-  }
-
-  /**
-   * 섹션의 제목을 업데이트합니다.
-   */
   updateSectionTitle(sectionId: string, title: string) {
-    const nextSections = this.state.sections.map((section) => {
-      if (section.id !== sectionId) return section;
-      return { ...section, title };
-    });
-    this.setState({ sections: nextSections });
+    this.updateSection(sectionId, s => ({ ...s, title }));
   }
 
-  /**
-   * 섹션 자체를 삭제합니다. (isFixed가 아닐 때만)
-   */
   deleteSection(sectionId: string) {
-    const nextSections = this.state.sections.filter((section) => {
-      // 1. 고정 섹션(Everyday, To Do)은 삭제 대상에서 제외 (항상 유지)
-      if (section.isFixed || section.id === 'EVERYDAY' || section.id === 'TODO') {
-        return true;
-      }
-      // 2. 고정 섹션이 아닌 경우, 요청받은 ID와 다를 때만 남김 (삭제 수행)
-      return section.id !== sectionId;
+    this.setState({
+      sections: this.state.sections.filter(s => s.isFixed || s.id !== sectionId)
     });
+  }
 
-    this.setState({ sections: nextSections });
+  addReminder(sectionId: string, text: string, time?: string) {
+    this.updateSection(sectionId, s => ({
+      ...s,
+      items: [...s.items, { id: Date.now(), text, time, done: false }]
+    }));
+  }
+
+  toggleReminder(sectionId: string, reminderId: number) {
+    this.updateSection(sectionId, s => ({
+      ...s,
+      items: s.items.map(item => item.id === reminderId ? { ...item, done: !item.done } : item)
+    }));
+  }
+
+  updateReminder(sectionId: string, reminderId: number, text: string, time?: string) {
+    this.updateSection(sectionId, s => ({
+      ...s,
+      items: s.items.map(item => item.id === reminderId ? { ...item, text, time } : item)
+    }));
+  }
+
+  deleteReminder(sectionId: string, reminderId: number) {
+    this.updateSection(sectionId, s => ({
+      ...s,
+      items: s.items.filter(item => item.id !== reminderId)
+    }));
   }
 }
 
