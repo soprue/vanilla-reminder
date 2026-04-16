@@ -17,7 +17,8 @@ interface ReminderState {
   searchQuery: string;
   hideCompleted: boolean; // 필터: 완료된 항목 숨기기 (유지)
   showTimePopover: boolean;
-  selectedTime: string;
+  selectedTime: Date | undefined;
+  isAllDay: boolean;
   pickerAMPM: 'AM' | 'PM';
   pickerHour: string;
   pickerMinute: string;
@@ -29,6 +30,7 @@ interface ReminderState {
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   init() {
     reminderService.setComponent(this);
+    reminderService.startMonitoring();
     
     this.state = {
       addingSectionId: null,
@@ -37,7 +39,8 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       searchQuery: '',
       hideCompleted: false,
       showTimePopover: false,
-      selectedTime: 'All Day',
+      selectedTime: undefined,
+      isAllDay: false,
       pickerAMPM: 'AM',
       pickerHour: '09',
       pickerMinute: '00',
@@ -62,7 +65,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId, editingItemId, editingSectionId, searchQuery, hideCompleted, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, editingSectionId, searchQuery, hideCompleted, showTimePopover, selectedTime, isAllDay, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
     const isSaving = reminderStore.isSaving;
@@ -125,6 +128,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                     isEditingTitle: editingSectionId === section.id,
                     showTimePopover,
                     selectedTime,
+                    isAllDay,
                     pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
                   }))
             }

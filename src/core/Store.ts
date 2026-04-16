@@ -7,7 +7,7 @@ export type Listener = () => void;
  */
 export class Store<T extends object> {
   protected state: T;
-  private storageKey: string | null;
+  protected storageKey: string | null;
   private listeners: Set<Listener> = new Set();
   
   private _isSaving = false;
@@ -53,6 +53,15 @@ export class Store<T extends object> {
    */
   protected updateDeepState(updater: (state: T) => Partial<T>) {
     this.setState(updater(this.state));
+  }
+
+  /**
+   * 현재 상태를 강제로 저장소에 저장합니다.
+   */
+  public forceSave() {
+    if (this.storageKey) {
+      this.debounceSave();
+    }
   }
 
   private debounceSave() {

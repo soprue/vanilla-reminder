@@ -12,9 +12,21 @@ interface ReminderSectionProps {
   editingItemId: number | null;
   isEditingTitle: boolean;
   showTimePopover: boolean;
-  selectedTime: string;
+  selectedTime: Date | undefined;
+  isAllDay: boolean;
   pickerState: { ampm: string; hour: string; minute: string };
 }
+
+/**
+ * 한국어 시간 형식 포맷터
+ */
+const formatKoreanTime = (date: Date) => {
+  return date.toLocaleString('ko-KR', {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
+};
 
 /**
  * 섹션 헤더 (타이틀 및 삭제 버튼)
@@ -93,7 +105,7 @@ const TimePickerPopover = ({ pickerState }: any) => {
 /**
  * 섹션 푸터 (아이템 추가 폼)
  */
-const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pickerState }: any) => {
+const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, isAllDay, pickerState }: any) => {
   if (!isAdding) {
     return jsx`
       <div class="section-footer">
@@ -105,7 +117,7 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
     `;
   }
 
-  const badgeClass = `time-badge ${selectedTime !== 'All Day' ? 'active' : ''}`;
+  const badgeClass = `time-badge ${!isAllDay && selectedTime ? 'active' : ''}`;
   const onEnter = (e: KeyboardEvent) => e.key === 'Enter' && reminderService.handleAddReminder(e, category);
   const onBlur = (e: FocusEvent) => {
     const container = (e.target as HTMLElement).closest('.input-area-wrapper');
@@ -118,6 +130,8 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
     }, 250);
   };
 
+  const displayTime = isAllDay ? 'All Day' : (selectedTime ? formatKoreanTime(selectedTime) : '');
+
   return jsx`
     <div class="section-footer">
       <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}">
@@ -126,7 +140,7 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
           <input type="text" class="reminder-inline-input" placeholder="할 일을 입력하세요..." onkeydown="${onEnter}" onblur="${onBlur}" />
           <button type="button" class="${badgeClass}" onclick="${() => reminderService.toggleTimePopover()}">
             <img src="${clockIcon}" alt="time" class="time-icon" />
-            <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
+            <span class="time-text">${displayTime === 'All Day' ? '' : displayTime}</span>
           </button>
         </div>
         ${showTimePopover ? TimePickerPopover({ pickerState }) : ''}
@@ -139,7 +153,7 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, pick
  * 카테고리별 섹션 카드 컴포넌트
  */
 export const ReminderSection = (props: ReminderSectionProps) => {
-  const { title, category, items, addingSectionId, editingItemId, isEditingTitle, showTimePopover, selectedTime, pickerState } = props;
+  const { title, category, items, addingSectionId, editingItemId, isEditingTitle, showTimePopover, selectedTime, isAllDay, pickerState } = props;
   const isFixed = category === 'EVERYDAY' || category === 'TODO';
   const isAdding = addingSectionId === category;
 
@@ -153,10 +167,11 @@ export const ReminderSection = (props: ReminderSectionProps) => {
           isEditing: editingItemId === item.id,
           showTimePopover,
           selectedTime,
+          isAllDay,
           pickerState,
         }))}
       </div>
-      ${SectionFooter({ category, isAdding, showTimePopover, selectedTime, pickerState })}
+      ${SectionFooter({ category, isAdding, showTimePopover, selectedTime, isAllDay, pickerState })}
     </section>
   `;
 };

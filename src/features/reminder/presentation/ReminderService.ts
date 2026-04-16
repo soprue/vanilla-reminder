@@ -103,24 +103,25 @@ export class ReminderService {
     const foundItem = sections.flatMap(s => s.items).find(it => it.id === reminderId);
 
     if (foundItem) {
-      const time = foundItem.time || REMINDER_CONFIG.DEFAULT_TIME;
-      let ampm: string = REMINDER_CONFIG.DEFAULT_AMPM;
+      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
       let hour: string = REMINDER_CONFIG.DEFAULT_HOUR;
       let minute: string = REMINDER_CONFIG.DEFAULT_MINUTE;
 
-      if (time !== REMINDER_CONFIG.DEFAULT_TIME) {
-        const [t, p] = time.split(' ');
-        const [h, m] = t.split(':');
-        ampm = p || REMINDER_CONFIG.DEFAULT_AMPM;
-        hour = h || (REMINDER_CONFIG.DEFAULT_HOUR as string);
-        minute = m || (REMINDER_CONFIG.DEFAULT_MINUTE as string);
+      if (foundItem.time instanceof Date) {
+        const h = foundItem.time.getHours();
+        const m = foundItem.time.getMinutes();
+        ampm = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h % 12 || 12;
+        hour = String(displayHour);
+        minute = String(m).padStart(2, '0');
       }
 
       this.component.setState({ 
         editingItemId: reminderId,
         addingSectionId: null,
         editingSectionId: null,
-        selectedTime: time,
+        selectedTime: foundItem.time,
+        isAllDay: foundItem.isAllDay,
         pickerAMPM: ampm,
         pickerHour: hour,
         pickerMinute: minute,
@@ -145,7 +146,11 @@ export class ReminderService {
       editingItemId: null,
       editingSectionId: null,
       showTimePopover: false,
-      selectedTime: REMINDER_CONFIG.DEFAULT_TIME
+      selectedTime: undefined,
+      isAllDay: false,
+      pickerAMPM: REMINDER_CONFIG.DEFAULT_AMPM,
+      pickerHour: REMINDER_CONFIG.DEFAULT_HOUR,
+      pickerMinute: REMINDER_CONFIG.DEFAULT_MINUTE
     });
   }
 
@@ -158,6 +163,62 @@ export class ReminderService {
   /* -------------------------------------------------------------------------- */
   /* 기타 전역 액션                                                               */
   /* -------------------------------------------------------------------------- */
+
+  /* -------------------------------------------------------------------------- */
+  /* 알림 시스템                                                                */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * 알림 모니터링 시작
+   */
+  startMonitoring() {
+    // 알림 권한 요청
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // 1분마다 체크
+    setInterval(() => this.checkNotifications(), 60000);
+    // 시작 시에도 한 번 체크
+    this.checkNotifications();
+  }
+
+  private checkNotifications() {
+    const { sections } = reminderStore.getState();
+    const allItems = sections.flatMap(s => s.items.map(item => ({ ...item, sectionId: s.id })));
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // 1. 밤 9시 확인 알림 (21:00)
+    if (currentHour === 21 && currentMinute === 0) {
+      const unfinishedItems = allItems.filter(item => !item.done);
+      if (unfinishedItems.length > 0) {
+        const itemNames = unfinishedItems.map(it => it.text).join(', ');
+        this.sendNotification('오늘 마무리 하셨나요?', `아직 남은 할 일이 있어요: ${itemNames}`);
+      }
+    }
+
+    // 2. 개별 리마인더 알림
+    allItems.forEach(item => {
+      if (item.time instanceof Date && !item.notified && !item.done) {
+        const itemHour = item.time.getHours();
+        const itemMinute = item.time.getMinutes();
+
+        // 현재 시간이 설정 시간보다 지났거나 같으면 알림
+        if (currentHour > itemHour || (currentHour === itemHour && currentMinute >= itemMinute)) {
+          this.sendNotification('리마인더 알림', item.text);
+          reminderStore.markAsNotified(item.sectionId, item.id);
+        }
+      }
+    });
+  }
+
+  private sendNotification(title: string, body: string) {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: './assets/logo.webp' });
+    }
+  }
 
   handleLogout() {
     authStore.logout();
@@ -176,17 +237,27 @@ export class ReminderService {
   updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
     if (!this.component) return;
     const newState = { ...this.component.state, [key]: value };
-    const formattedTime = `${newState.pickerHour}:${newState.pickerMinute} ${newState.pickerAMPM}`;
+    
+    // Date 객체 생성 (오늘 날짜 기준)
+    const date = new Date();
+    let h = parseInt(newState.pickerHour);
+    if (newState.pickerAMPM === 'PM' && h < 12) h += 12;
+    if (newState.pickerAMPM === 'AM' && h === 12) h = 0;
+    
+    date.setHours(h, parseInt(newState.pickerMinute), 0, 0);
+
     this.component.setState({ 
       [key]: value,
-      selectedTime: formattedTime 
+      selectedTime: date,
+      isAllDay: false
     } as any);
   }
 
   setAllDay() {
     if (!this.component) return;
     this.component.setState({ 
-      selectedTime: REMINDER_CONFIG.DEFAULT_TIME,
+      selectedTime: undefined,
+      isAllDay: true,
       showTimePopover: false 
     });
   }

@@ -1,23 +1,31 @@
 import jsx from '@core/JSX';
 import clockIcon from '@assets/icons/clock.svg';
 import { reminderService } from '../ReminderService';
+import { Reminder } from '../../domain/reminder';
 
 interface ReminderItemProps {
   sectionId: string;
-  item: {
-    id: number;
-    text: string;
-    time?: string;
-    done: boolean;
-  };
+  item: Reminder;
   isEditing: boolean;
   showTimePopover: boolean;
-  selectedTime: string;
+  selectedTime: Date | undefined;
+  isAllDay: boolean;
   pickerState: { ampm: string; hour: string; minute: string };
 }
 
 /**
- * 시간 선택 피커 팝오버 (중복 제거를 위해 추출 가능하지만 각 컴포넌트 특성에 맞게 유지)
+ * 한국어 시간 형식 포맷터
+ */
+const formatKoreanTime = (date: Date) => {
+  return date.toLocaleString('ko-KR', {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
+};
+
+/**
+ * 시간 선택 피커 팝오버
  */
 const TimePickerPopover = ({ pickerState }: any) => {
   const ampmOptions = ['AM', 'PM'];
@@ -26,7 +34,6 @@ const TimePickerPopover = ({ pickerState }: any) => {
 
   const updateTime = (key: any, val: string) => {
     reminderService.updatePickerTime(key, val);
-    reminderService.toggleTimePopover();
   };
 
   return jsx`
@@ -57,7 +64,7 @@ const TimePickerPopover = ({ pickerState }: any) => {
  * 수정 모드 UI 렌더링
  */
 const EditMode = (props: ReminderItemProps) => {
-  const { sectionId, item, selectedTime, pickerState, showTimePopover } = props;
+  const { sectionId, item, selectedTime, isAllDay, pickerState, showTimePopover } = props;
 
   const onEnter = (e: KeyboardEvent) => {
     if (e.key === 'Enter') reminderService.handleUpdateReminder(sectionId, item.id, (e.target as HTMLInputElement).value);
@@ -76,8 +83,10 @@ const EditMode = (props: ReminderItemProps) => {
     }, 250);
   };
 
-  const badgeClass = `time-badge ${selectedTime !== 'All Day' ? 'active' : ''}`;
+  const badgeClass = `time-badge ${!isAllDay && selectedTime ? 'active' : ''}`;
   const checkboxClass = `checkbox-rect ${item.done ? 'done' : ''}`;
+  
+  const displayTime = isAllDay ? 'All Day' : (selectedTime ? formatKoreanTime(selectedTime) : '');
 
   return jsx`
     <form class="input-area-wrapper" onsubmit="${(e: Event) => e.preventDefault()}" style="margin-bottom: 8px;">
@@ -88,7 +97,7 @@ const EditMode = (props: ReminderItemProps) => {
         <input type="text" class="reminder-inline-input" value="${item.text}" onkeydown="${onEnter}" onblur="${onBlur}" />
         <button type="button" class="${badgeClass}" onclick="${() => reminderService.toggleTimePopover()}">
           <img src="${clockIcon}" alt="time" class="time-icon" />
-          <span class="time-text">${selectedTime === 'All Day' ? '' : selectedTime}</span>
+          <span class="time-text">${displayTime === 'All Day' ? '' : displayTime}</span>
         </button>
       </div>
       ${showTimePopover ? TimePickerPopover({ pickerState }) : ''}
@@ -118,6 +127,8 @@ const ViewMode = (props: ReminderItemProps) => {
   const textClass = `text-main ${item.done ? 'text-done' : ''}`;
   const timeClass = `text-time ${item.done ? 'text-done' : ''}`;
 
+  const displayTime = item.isAllDay ? 'All Day' : (item.time ? formatKoreanTime(item.time) : '');
+
   return jsx`
     <div class="${rowClass}" ondblclick="${startEdit}">
       <div class="${checkboxClass}" onclick="${toggleDone}">
@@ -126,7 +137,7 @@ const ViewMode = (props: ReminderItemProps) => {
       
       <div class="item-content" onclick="${toggleDone}" style="cursor: pointer; flex: 1;">
         <p class="${textClass}">${item.text}</p>
-        ${item.time ? jsx`<span class="${timeClass}">${item.time}</span>` : ''}
+        ${displayTime ? jsx`<span class="${timeClass}">${displayTime}</span>` : ''}
       </div>
 
       <div class="item-actions">
