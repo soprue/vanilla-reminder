@@ -24,11 +24,10 @@ interface ReminderState {
 
 /**
  * 리마인더 메인 페이지 컴포넌트
- * UI 구조와 데이터 구독을 담당하며, 복잡한 로직은 ReminderService에 위임합니다.
  */
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   init() {
-    reminderService.setComponent(this); // 서비스와 컴포넌트 연결
+    reminderService.setComponent(this);
     
     this.state = {
       addingSectionId: null,
@@ -74,6 +73,16 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
 
     return jsx`
       <div class="app-container ${isDarkMode ? 'dark-mode' : ''}">
+        <!-- 우측 하단 플로팅 저장 인디케이터 -->
+        <div class="save-status-toast ${isSaving ? 'visible saving' : 'saved'}">
+          <div class="save-icon-wrapper">
+            ${isSaving 
+              ? jsx`<div class="spinner-dot"></div>` 
+              : jsx`<span class="check-icon">✓</span>`}
+          </div>
+          <span class="save-text">${isSaving ? '저장 중...' : '저장 완료'}</span>
+        </div>
+
         ${Sidebar({
           isDarkMode,
           onToggleTheme: () => reminderService.toggleDarkMode(),
@@ -81,9 +90,8 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
         })}
 
         <div class="reminder-list-wrapper">
-          <div class="search-bar-container" style="position: relative;">
+          <div class="search-bar-container">
             <input type="text" class="search-input" placeholder="검색어를 입력하세요..." value="${searchQuery}" oninput="${(e: Event) => reminderService.handleSearch(e)}" />
-            <div class="save-indicator ${!isSaving ? 'saved' : ''}">${isSaving ? '저장 중...' : '저장됨'}</div>
           </div>
 
           <div class="sections-container">
