@@ -28,12 +28,39 @@ class ReminderStore extends Store<ReminderState> {
     ];
 
     super({ sections: initialSections }, STORAGE_KEYS.REMINDER);
-    this.loadAndHydrate();
   }
 
   /* -------------------------------------------------------------------------- */
   /* Helper Methods (Encapsulation)                                             */
   /* -------------------------------------------------------------------------- */
+
+  /**
+   * 불러온 데이터의 날짜 형식을 복원함
+   */
+  protected hydrate(data: any): ReminderState {
+    if (!data.sections) return this.state;
+
+    return {
+      ...this.state,
+      sections: data.sections.map((section: any) => ({
+        ...section,
+        items: section.items.map((item: any) => {
+          let hydratedTime: Date | undefined = undefined;
+          if (item.time) {
+            const date = new Date(item.time);
+            if (!isNaN(date.getTime())) hydratedTime = date;
+          }
+          return {
+            ...item,
+            time: hydratedTime,
+            isAllDay: item.isAllDay ?? (item.time === 'All Day'),
+            notified: item.notified ?? false,
+            done: item.done ?? false
+          };
+        })
+      }))
+    };
+  }
 
   private updateSection(sectionId: string, updater: (section: ReminderSectionData) => ReminderSectionData) {
     this.setState({
@@ -44,44 +71,6 @@ class ReminderStore extends Store<ReminderState> {
   /* -------------------------------------------------------------------------- */
   /* Public Actions                                                             */
   /* -------------------------------------------------------------------------- */
-
-  private async loadAndHydrate() {
-    if (!this.storageKey || !(window as any).api) return;
-    try {
-      const savedData = await (window as any).api.invoke('reminder:get-all', this.storageKey);
-      if (savedData && savedData.sections) {
-        // 날짜 객체 복원 (Hydration) 및 유효성 검사
-        const hydratedSections = savedData.sections.map((section: any) => ({
-          ...section,
-          items: section.items.map((item: any) => {
-            let hydratedTime: Date | undefined = undefined;
-            
-            if (item.time) {
-              const date = new Date(item.time);
-              if (!isNaN(date.getTime())) {
-                hydratedTime = date;
-              }
-            }
-
-            return {
-              ...item,
-              time: hydratedTime,
-              isAllDay: item.isAllDay ?? (item.time === 'All Day'),
-              notified: item.notified ?? false,
-              done: item.done ?? false
-            };
-          })
-        }));
-        this.setState({ sections: hydratedSections });
-      } else {
-        // 저장된 데이터가 없으면 초기 데이터를 강제로 저장 (하드디스크에 쓰기)
-        console.log("[ReminderStore] Storage is empty. Persisting initial state...");
-        this.forceSave();
-      }
-    } catch (e) {
-      console.error(`[ReminderStore] Load error:`, e);
-    }
-  }
 
   addSection(title: string) {
     const newSection: ReminderSectionData = {

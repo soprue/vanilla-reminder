@@ -13,20 +13,13 @@ class ThemeStore extends Store<ThemeState> {
     super({
       isDarkMode: systemDarkMode,
     }, STORAGE_KEYS.THEME);
-    
-    this.loadAndHydrate();
   }
 
-  private async loadAndHydrate() {
-    if (!this.storageKey || !(window as any).api) return;
-    try {
-      const savedData = await (window as any).api.invoke('reminder:get-all', this.storageKey);
-      if (savedData && typeof savedData.isDarkMode === 'boolean') {
-        this.setState({ isDarkMode: savedData.isDarkMode });
-      }
-    } catch (e) {
-      console.error(`[ThemeStore] Load error:`, e);
+  protected hydrate(data: any): ThemeState {
+    if (data && typeof data.isDarkMode === 'boolean') {
+      return { isDarkMode: data.isDarkMode };
     }
+    return this.state;
   }
 
   toggleDarkMode() {

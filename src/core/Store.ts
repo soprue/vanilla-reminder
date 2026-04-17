@@ -26,12 +26,23 @@ export class Store<T extends object> {
     try {
       const savedData = await (window as any).api.invoke('reminder:get-all', this.storageKey);
       if (savedData) {
-        this.state = { ...this.state, ...savedData };
+        // 데이터 복원(Hydration) 훅 호출 후 상태 업데이트
+        this.state = this.hydrate(savedData);
         this.notify();
+      } else {
+        // 데이터가 없으면 초기 상태 강제 저장
+        this.forceSave();
       }
     } catch (e) {
       console.error(`[Store] Load error:`, e);
     }
+  }
+
+  /**
+   * 저장소에서 불러온 데이터를 현재 상태에 맞게 변환하는 훅 (자식 클래스에서 오버라이드)
+   */
+  protected hydrate(data: any): T {
+    return { ...this.state, ...data };
   }
 
   getState(): T { return this.state; }
