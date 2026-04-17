@@ -4,7 +4,9 @@
 export interface Reminder {
   id: number;
   text: string;
-  time?: string;
+  time?: Date;
+  isAllDay: boolean;
+  notified: boolean;
   done: boolean;
 }
 

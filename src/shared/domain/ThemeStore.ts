@@ -15,6 +15,13 @@ class ThemeStore extends Store<ThemeState> {
     }, STORAGE_KEYS.THEME);
   }
 
+  protected hydrate(data: any): ThemeState {
+    if (data && typeof data.isDarkMode === 'boolean') {
+      return { isDarkMode: data.isDarkMode };
+    }
+    return this.state;
+  }
+
   toggleDarkMode() {
     this.setState({ isDarkMode: !this.state.isDarkMode });
   }

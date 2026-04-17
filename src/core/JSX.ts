@@ -107,10 +107,18 @@ export function createDOM(vNode: VNodeChild): Node {
   if (typeof vNode === 'string' || typeof vNode === 'number') return document.createTextNode(String(vNode));
   if (!vNode || typeof vNode === 'boolean') return document.createComment('v-node-placeholder');
   
+  if (Array.isArray(vNode)) {
+    const frag = document.createDocumentFragment();
+    vNode.forEach((c) => frag.appendChild(createDOM(c)));
+    return frag;
+  }
+
   const node = vNode as VNode;
   if (node.type === Fragment) {
     const frag = document.createDocumentFragment();
-    node.children.forEach((c) => frag.appendChild(createDOM(c)));
+    if (node.children) {
+      node.children.forEach((c) => frag.appendChild(createDOM(c)));
+    }
     return frag;
   }
 
@@ -123,7 +131,12 @@ export function createDOM(vNode: VNodeChild): Node {
     }
   });
 
-  node.children.forEach((c) => $el.appendChild(createDOM(c)));
+  if (node.children) {
+    node.children.forEach((c) => {
+      const $child = createDOM(c);
+      if ($child) $el.appendChild($child);
+    });
+  }
   return $el;
 }
 

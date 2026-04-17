@@ -2,7 +2,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 import { authStore } from '@src/features/auth/domain/AuthStore';
 import { themeStore } from '@src/shared/domain/ThemeStore';
 import { Router } from '@core/Router';
-import { REMINDER_CONFIG } from '@src/shared/constants';
+import { REMINDER_CONFIG, NOTIFICATION_MESSAGES } from '@src/shared/constants';
 
 /**
  * 리마인더 페이지의 모든 비즈니스 로직을 담당하는 서비스 클래스
@@ -103,24 +103,25 @@ export class ReminderService {
     const foundItem = sections.flatMap(s => s.items).find(it => it.id === reminderId);
 
     if (foundItem) {
-      const time = foundItem.time || REMINDER_CONFIG.DEFAULT_TIME;
-      let ampm: string = REMINDER_CONFIG.DEFAULT_AMPM;
+      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
       let hour: string = REMINDER_CONFIG.DEFAULT_HOUR;
       let minute: string = REMINDER_CONFIG.DEFAULT_MINUTE;
 
-      if (time !== REMINDER_CONFIG.DEFAULT_TIME) {
-        const [t, p] = time.split(' ');
-        const [h, m] = t.split(':');
-        ampm = p || REMINDER_CONFIG.DEFAULT_AMPM;
-        hour = h || (REMINDER_CONFIG.DEFAULT_HOUR as string);
-        minute = m || (REMINDER_CONFIG.DEFAULT_MINUTE as string);
+      if (foundItem.time instanceof Date) {
+        const h = foundItem.time.getHours();
+        const m = foundItem.time.getMinutes();
+        ampm = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h % 12 || 12;
+        hour = String(displayHour);
+        minute = String(m).padStart(2, '0');
       }
 
       this.component.setState({ 
         editingItemId: reminderId,
         addingSectionId: null,
         editingSectionId: null,
-        selectedTime: time,
+        selectedTime: foundItem.time,
+        isAllDay: foundItem.isAllDay,
         pickerAMPM: ampm,
         pickerHour: hour,
         pickerMinute: minute,
@@ -145,7 +146,11 @@ export class ReminderService {
       editingItemId: null,
       editingSectionId: null,
       showTimePopover: false,
-      selectedTime: REMINDER_CONFIG.DEFAULT_TIME
+      selectedTime: undefined,
+      isAllDay: false,
+      pickerAMPM: REMINDER_CONFIG.DEFAULT_AMPM,
+      pickerHour: REMINDER_CONFIG.DEFAULT_HOUR,
+      pickerMinute: REMINDER_CONFIG.DEFAULT_MINUTE
     });
   }
 
@@ -170,23 +175,66 @@ export class ReminderService {
 
   toggleTimePopover() {
     if (!this.component) return;
-    this.component.setState({ showTimePopover: !this.component.state.showTimePopover });
+    const isOpening = !this.component.state.showTimePopover;
+
+    if (isOpening) {
+      const { selectedTime, isAllDay } = this.component.state;
+      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
+      let hour: string = REMINDER_CONFIG.DEFAULT_HOUR;
+      let minute: string = REMINDER_CONFIG.DEFAULT_MINUTE;
+
+      // 이미 설정된 시간이 있다면 그 시간으로 피커 초기화
+      const timeDate = selectedTime instanceof Date ? selectedTime : (selectedTime ? new Date(selectedTime) : null);
+      
+      if (timeDate && !isNaN(timeDate.getTime()) && !isAllDay) {
+        const h = timeDate.getHours();
+        const m = timeDate.getMinutes();
+        ampm = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h % 12 || 12;
+        hour = String(displayHour).padStart(2, '0');
+        minute = String(m).padStart(2, '0');
+        
+        // 5분 단위 피커인 경우 가장 가까운 값으로 반올림 (선택 사항)
+        const roundedMinute = Math.round(m / 5) * 5;
+        minute = String(roundedMinute >= 60 ? 55 : roundedMinute).padStart(2, '0');
+      }
+
+      this.component.setState({ 
+        showTimePopover: true,
+        pickerAMPM: ampm,
+        pickerHour: hour,
+        pickerMinute: minute
+      });
+    } else {
+      this.component.setState({ showTimePopover: false });
+    }
   }
 
   updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
     if (!this.component) return;
     const newState = { ...this.component.state, [key]: value };
-    const formattedTime = `${newState.pickerHour}:${newState.pickerMinute} ${newState.pickerAMPM}`;
+    
+    // Date 객체 생성 (오늘 날짜 기준)
+    const date = new Date();
+    let h = parseInt(newState.pickerHour);
+    if (newState.pickerAMPM === 'PM' && h < 12) h += 12;
+    if (newState.pickerAMPM === 'AM' && h === 12) h = 0;
+    
+    date.setHours(h, parseInt(newState.pickerMinute), 0, 0);
+
     this.component.setState({ 
       [key]: value,
-      selectedTime: formattedTime 
+      selectedTime: date,
+      isAllDay: false,
+      showTimePopover: false
     } as any);
   }
 
   setAllDay() {
     if (!this.component) return;
     this.component.setState({ 
-      selectedTime: REMINDER_CONFIG.DEFAULT_TIME,
+      selectedTime: undefined,
+      isAllDay: true,
       showTimePopover: false 
     });
   }

@@ -8,6 +8,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 import { Sidebar } from '@src/shared/presentation/Sidebar';
 import { ReminderSection } from './components/ReminderSection';
 import { reminderService } from './ReminderService';
+import { notificationService } from './NotificationService';
 import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
@@ -17,7 +18,8 @@ interface ReminderState {
   searchQuery: string;
   hideCompleted: boolean; // 필터: 완료된 항목 숨기기 (유지)
   showTimePopover: boolean;
-  selectedTime: string;
+  selectedTime: Date | undefined;
+  isAllDay: boolean;
   pickerAMPM: 'AM' | 'PM';
   pickerHour: string;
   pickerMinute: string;
@@ -29,6 +31,7 @@ interface ReminderState {
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   init() {
     reminderService.setComponent(this);
+    notificationService.startMonitoring();
     
     this.state = {
       addingSectionId: null,
@@ -37,7 +40,8 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
       searchQuery: '',
       hideCompleted: false,
       showTimePopover: false,
-      selectedTime: 'All Day',
+      selectedTime: undefined,
+      isAllDay: false,
       pickerAMPM: 'AM',
       pickerHour: '09',
       pickerMinute: '00',
@@ -49,11 +53,28 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   componentDidUpdate() {
+    // 1. 입력창 포커스 복구
     const input = this.target.querySelector('.reminder-inline-input, .section-title-input') as HTMLInputElement;
     if (input && (this.state.addingSectionId || this.state.editingItemId || this.state.editingSectionId) && !this.state.showTimePopover) {
       input.focus();
       const val = input.value;
       input.value = ''; input.value = val;
+    }
+
+    // 2. 시간 피커 자동 스크롤 (중앙 정렬)
+    if (this.state.showTimePopover) {
+      const columns = this.target.querySelectorAll('.mini-column');
+      columns.forEach(column => {
+        const selectedItem = column.querySelector('.mini-item.selected') as HTMLElement;
+        if (selectedItem) {
+          // 선택된 아이템이 컬럼의 중앙에 오도록 스크롤 위치 계산
+          const columnHeight = column.clientHeight;
+          const itemHeight = selectedItem.clientHeight;
+          const itemOffsetTop = selectedItem.offsetTop;
+          
+          column.scrollTop = itemOffsetTop - (columnHeight / 2) + (itemHeight / 2);
+        }
+      });
     }
   }
 
@@ -62,7 +83,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
   }
 
   render() {
-    const { addingSectionId, editingItemId, editingSectionId, searchQuery, hideCompleted, showTimePopover, selectedTime, pickerAMPM, pickerHour, pickerMinute } = this.state;
+    const { addingSectionId, editingItemId, editingSectionId, searchQuery, hideCompleted, showTimePopover, selectedTime, isAllDay, pickerAMPM, pickerHour, pickerMinute } = this.state;
     const { isDarkMode } = themeStore.getState();
     const { sections } = reminderStore.getState();
     const isSaving = reminderStore.isSaving;
@@ -125,6 +146,7 @@ export default class ReminderPage extends Component<ComponentProps, ReminderStat
                     isEditingTitle: editingSectionId === section.id,
                     showTimePopover,
                     selectedTime,
+                    isAllDay,
                     pickerState: { ampm: pickerAMPM, hour: pickerHour, minute: pickerMinute },
                   }))
             }
