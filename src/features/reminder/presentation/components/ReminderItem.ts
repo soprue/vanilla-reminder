@@ -14,9 +14,13 @@ interface ReminderItemProps {
 }
 
 /**
- * 한국어 시간 형식 포맷터
+ * 한국어 시간 형식 포맷터 (Date 객체 또는 문자열 모두 대응)
  */
-const formatKoreanTime = (date: Date) => {
+const formatKoreanTime = (time: Date | string | undefined) => {
+  if (!time) return '';
+  const date = time instanceof Date ? time : new Date(time);
+  if (isNaN(date.getTime())) return '';
+
   return date.toLocaleString('ko-KR', {
     hour: 'numeric',
     minute: 'numeric',

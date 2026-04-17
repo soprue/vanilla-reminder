@@ -187,11 +187,10 @@ export class ReminderService {
     const { sections } = reminderStore.getState();
     const allItems = sections.flatMap(s => s.items.map(item => ({ ...item, sectionId: s.id })));
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+    const nowMs = now.getTime();
 
     // 1. 밤 9시 확인 알림 (21:00)
-    if (currentHour === 21 && currentMinute === 0) {
+    if (now.getHours() === 21 && now.getMinutes() === 0) {
       const unfinishedItems = allItems.filter(item => !item.done);
       if (unfinishedItems.length > 0) {
         const itemNames = unfinishedItems.map(it => it.text).join(', ');
@@ -201,12 +200,15 @@ export class ReminderService {
 
     // 2. 개별 리마인더 알림
     allItems.forEach(item => {
-      if (item.time instanceof Date && !item.notified && !item.done) {
-        const itemHour = item.time.getHours();
-        const itemMinute = item.time.getMinutes();
+      // Date 객체인지 확인하고, 문자열이면 변환 시도 (안전장치)
+      const itemDate = item.time instanceof Date ? item.time : (item.time ? new Date(item.time) : null);
+
+      if (itemDate && !isNaN(itemDate.getTime()) && !item.notified && !item.done) {
+        const itemMs = itemDate.getTime();
 
         // 현재 시간이 설정 시간보다 지났거나 같으면 알림
-        if (currentHour > itemHour || (currentHour === itemHour && currentMinute >= itemMinute)) {
+        if (nowMs >= itemMs) {
+          console.log(`[Notification] 알림 조건 충족: ${item.text} (설정: ${itemDate.toLocaleString()})`);
           this.sendNotification('리마인더 알림', item.text);
           reminderStore.markAsNotified(item.sectionId, item.id);
         }
@@ -216,7 +218,17 @@ export class ReminderService {
 
   private sendNotification(title: string, body: string) {
     if (Notification.permission === 'granted') {
-      new Notification(title, { body, icon: './assets/logo.webp' });
+      try {
+        new Notification(title, { 
+          body, 
+          // 아이콘 경로가 문제일 수 있으므로 일단 기본값 사용 고려
+          silent: false 
+        });
+      } catch (e) {
+        console.error('[Notification] 발송 실패:', e);
+      }
+    } else {
+      console.warn('[Notification] 권한이 없습니다. 현재 상태:', Notification.permission);
     }
   }
 
