@@ -172,14 +172,14 @@ export class ReminderService {
    * 알림 모니터링 시작
    */
   startMonitoring() {
-    // 알림 권한 요청
-    if (Notification.permission === 'default') {
+    // 알림 권한 요청 및 확인
+    if (Notification.permission !== 'granted') {
       Notification.requestPermission();
     }
 
-    // 1분마다 체크
+    // 1분마다 체크 (실운영 환경)
     setInterval(() => this.checkNotifications(), 60000);
-    // 시작 시에도 한 번 체크
+    // 시작 시에도 한 번 즉시 체크
     this.checkNotifications();
   }
 
@@ -193,42 +193,38 @@ export class ReminderService {
     if (now.getHours() === 21 && now.getMinutes() === 0) {
       const unfinishedItems = allItems.filter(item => !item.done);
       if (unfinishedItems.length > 0) {
-        const itemNames = unfinishedItems.map(it => it.text).join(', ');
-        this.sendNotification('오늘 마무리 하셨나요?', `아직 남은 할 일이 있어요: ${itemNames}`);
+        this.sendNotification('오늘 마무리 하셨나요?', `아직 남은 할 일이 있어요: ${unfinishedItems.map(it => it.text).join(', ')}`);
       }
     }
 
     // 2. 개별 리마인더 알림
     allItems.forEach(item => {
-      // Date 객체인지 확인하고, 문자열이면 변환 시도 (안전장치)
-      const itemDate = item.time instanceof Date ? item.time : (item.time ? new Date(item.time) : null);
+      if (!item.time || item.done || item.notified) return;
 
-      if (itemDate && !isNaN(itemDate.getTime()) && !item.notified && !item.done) {
-        const itemMs = itemDate.getTime();
+      const itemDate = item.time instanceof Date ? item.time : new Date(item.time);
+      const itemMs = itemDate.getTime();
 
-        // 현재 시간이 설정 시간보다 지났거나 같으면 알림
-        if (nowMs >= itemMs) {
-          console.log(`[Notification] 알림 조건 충족: ${item.text} (설정: ${itemDate.toLocaleString()})`);
-          this.sendNotification('리마인더 알림', item.text);
-          reminderStore.markAsNotified(item.sectionId, item.id);
-        }
+      // 현재 시간이 설정 시간보다 지났거나 같으면 알림 발송
+      if (nowMs >= itemMs) {
+        this.sendNotification('리마인더 알림', item.text);
+        reminderStore.markAsNotified(item.sectionId, item.id);
       }
     });
   }
 
   private sendNotification(title: string, body: string) {
     if (Notification.permission === 'granted') {
-      try {
-        new Notification(title, { 
-          body, 
-          // 아이콘 경로가 문제일 수 있으므로 일단 기본값 사용 고려
-          silent: false 
-        });
-      } catch (e) {
-        console.error('[Notification] 발송 실패:', e);
-      }
-    } else {
-      console.warn('[Notification] 권한이 없습니다. 현재 상태:', Notification.permission);
+      const notification = new Notification(title, { 
+        body, 
+        icon: './assets/logo.webp',
+        silent: false,
+        requireInteraction: true 
+      });
+      
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
     }
   }
 
