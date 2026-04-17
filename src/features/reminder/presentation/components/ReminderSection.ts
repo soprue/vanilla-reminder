@@ -3,6 +3,8 @@ import { ReminderItem } from './ReminderItem';
 import { reminderService } from '../ReminderService';
 import minusSquareIcon from '@assets/icons/minusSquare.svg';
 import clockIcon from '@assets/icons/clock.svg';
+import { formatKoreanTime } from '@src/shared/utils/date';
+import { TimePicker } from './TimePicker';
 
 interface ReminderSectionProps {
   title: string;
@@ -16,21 +18,6 @@ interface ReminderSectionProps {
   isAllDay: boolean;
   pickerState: { ampm: string; hour: string; minute: string };
 }
-
-/**
- * 한국어 시간 형식 포맷터 (Date 객체 또는 문자열 모두 대응)
- */
-const formatKoreanTime = (time: Date | string | undefined) => {
-  if (!time) return '';
-  const date = time instanceof Date ? time : new Date(time);
-  if (isNaN(date.getTime())) return '';
-
-  return date.toLocaleString('ko-KR', {
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true
-  });
-};
 
 /**
  * 섹션 헤더 (타이틀 및 삭제 버튼)
@@ -65,43 +52,6 @@ const SectionHeader = ({ title, category, isEditingTitle, isFixed }: any) => {
     <div class="section-header">
       <h2 class="${titleClass}" onclick="${editTitle}" title="${!isFixed ? '클릭하여 이름 수정' : ''}">${title}</h2>
       ${!isFixed ? jsx`<button class="section-delete-btn" onclick="${deleteSection}" title="섹션 삭제"><img src="${minusSquareIcon}" alt="delete" /></button>` : ''}
-    </div>
-  `;
-};
-
-/**
- * 시간 선택 피커 팝오버
- */
-const TimePickerPopover = ({ pickerState }: any) => {
-  const ampmOptions = ['AM', 'PM'];
-  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const minuteOptions = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
-
-  const updateTime = (key: any, val: string) => {
-    reminderService.updatePickerTime(key, val);
-    reminderService.toggleTimePopover();
-  };
-
-  return jsx`
-    <div class="time-popover-box">
-      <div class="popover-all-day" onclick="${(e: Event) => { e.stopPropagation(); reminderService.setAllDay(); }}">☀️ All Day 로 설정</div>
-      <div class="mini-picker-columns">
-        <div class="mini-column">
-          <div class="mini-item"></div>
-          ${ampmOptions.map(opt => jsx`<div class="mini-item ${pickerState.ampm === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerAMPM', opt)}">${opt}</div>`)}
-          <div class="mini-item"></div>
-        </div>
-        <div class="mini-column">
-          <div class="mini-item"></div>
-          ${hourOptions.map(opt => jsx`<div class="mini-item ${pickerState.hour === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerHour', opt)}">${opt}</div>`)}
-          <div class="mini-item"></div>
-        </div>
-        <div class="mini-column">
-          <div class="mini-item"></div>
-          ${minuteOptions.map(opt => jsx`<div class="mini-item ${pickerState.minute === opt ? 'selected' : ''}" onclick="${() => updateTime('pickerMinute', opt)}">${opt}</div>`)}
-          <div class="mini-item"></div>
-        </div>
-      </div>
     </div>
   `;
 };
@@ -147,7 +97,7 @@ const SectionFooter = ({ category, isAdding, showTimePopover, selectedTime, isAl
             <span class="time-text">${displayTime === 'All Day' ? '' : displayTime}</span>
           </button>
         </div>
-        ${showTimePopover ? TimePickerPopover({ pickerState }) : ''}
+        ${showTimePopover ? TimePicker({ pickerState }) : ''}
       </form>
     </div>
   `;
