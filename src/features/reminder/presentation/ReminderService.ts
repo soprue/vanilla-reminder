@@ -2,7 +2,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 import { authStore } from '@src/features/auth/domain/AuthStore';
 import { themeStore } from '@src/shared/domain/ThemeStore';
 import { Router } from '@core/Router';
-import { REMINDER_CONFIG } from '@src/shared/constants';
+import { REMINDER_CONFIG, NOTIFICATION_MESSAGES } from '@src/shared/constants';
 
 /**
  * 리마인더 페이지의 모든 비즈니스 로직을 담당하는 서비스 클래스
@@ -193,7 +193,11 @@ export class ReminderService {
     if (now.getHours() === 21 && now.getMinutes() === 0) {
       const unfinishedItems = allItems.filter(item => !item.done);
       if (unfinishedItems.length > 0) {
-        this.sendNotification('오늘 마무리 하셨나요?', `아직 남은 할 일이 있어요: ${unfinishedItems.map(it => it.text).join(', ')}`);
+        const itemNames = unfinishedItems.map(it => it.text).join(', ');
+        this.sendNotification(
+          NOTIFICATION_MESSAGES.NIGHT_CHECK_TITLE, 
+          NOTIFICATION_MESSAGES.NIGHT_CHECK_BODY(itemNames)
+        );
       }
     }
 
@@ -206,7 +210,10 @@ export class ReminderService {
 
       // 현재 시간이 설정 시간보다 지났거나 같으면 알림 발송
       if (nowMs >= itemMs) {
-        this.sendNotification('리마인더 알림', item.text);
+        this.sendNotification(
+          NOTIFICATION_MESSAGES.INDIVIDUAL_TITLE, 
+          NOTIFICATION_MESSAGES.INDIVIDUAL_BODY(item.text)
+        );
         reminderStore.markAsNotified(item.sectionId, item.id);
       }
     });
