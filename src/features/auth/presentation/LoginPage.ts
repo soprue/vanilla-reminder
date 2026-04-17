@@ -32,7 +32,7 @@ export default class LoginPage extends Component<ComponentProps> {
   }
 
   handleGoogleLogin() {
-    console.log('Google Login Clicked');
+    // 구글 로그인 연동 시 구현 예정
   }
 
   handleLogout() {

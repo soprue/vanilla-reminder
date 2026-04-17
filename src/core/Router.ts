@@ -33,7 +33,6 @@ export class Router {
     // #/login -> /login 형식으로 추출
     let hash = window.location.hash.replace(/^#/, '') || '/';
     
-    console.log('[Router] Current Hash Path:', hash);
     const route = this.routes[hash] || this.routes['/'];
 
     if (route) {

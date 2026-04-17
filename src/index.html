@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- 개발 환경에서는 Webpack Dev Server 리소스 로드를 위해 CSP를 임시 비활성화합니다. -->
+    <!-- 
+      개발 환경(Webpack Dev Server)과의 통신을 위해 보안 정책(CSP)을 조정할 수 있습니다. 
+      배포 시에는 실제 서비스 도메인에 맞게 강화가 필요합니다.
+    -->
     <!-- <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:9000 http://localhost:9000;"
