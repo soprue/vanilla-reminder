@@ -8,6 +8,7 @@ import { reminderStore } from '@src/features/reminder/domain/ReminderStore';
 import { Sidebar } from '@src/shared/presentation/Sidebar';
 import { ReminderSection } from './components/ReminderSection';
 import { reminderService } from './ReminderService';
+import { notificationService } from './NotificationService';
 import plusIcon from '@assets/icons/plus.svg';
 
 interface ReminderState {
@@ -30,7 +31,7 @@ interface ReminderState {
 export default class ReminderPage extends Component<ComponentProps, ReminderState> {
   init() {
     reminderService.setComponent(this);
-    reminderService.startMonitoring();
+    notificationService.startMonitoring();
     
     this.state = {
       addingSectionId: null,

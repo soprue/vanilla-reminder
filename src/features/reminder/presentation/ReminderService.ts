@@ -10,7 +10,6 @@ import { REMINDER_CONFIG, NOTIFICATION_MESSAGES } from '@src/shared/constants';
 export class ReminderService {
   private static instance: ReminderService;
   private component: any = null;
-  private monitoringTimer: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {}
 
@@ -164,90 +163,6 @@ export class ReminderService {
   /* -------------------------------------------------------------------------- */
   /* 기타 전역 액션                                                               */
   /* -------------------------------------------------------------------------- */
-
-  /* -------------------------------------------------------------------------- */
-  /* 알림 시스템                                                                */
-  /* -------------------------------------------------------------------------- */
-
-  /**
-   * 알림 모니터링 시작
-   */
-  startMonitoring() {
-    // 이미 모니터링 중이라면 중복 실행 방지
-    if (this.monitoringTimer) return;
-
-    // 알림 권한 요청 및 확인
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission();
-    }
-
-    // 1분마다 체크 (실운영 환경)
-    this.monitoringTimer = setInterval(() => this.checkNotifications(), 60000);
-    // 시작 시에도 한 번 즉시 체크
-    this.checkNotifications();
-  }
-
-  /**
-   * 알림 모니터링 중지
-   */
-  stopMonitoring() {
-    if (this.monitoringTimer) {
-      clearInterval(this.monitoringTimer);
-      this.monitoringTimer = null;
-    }
-  }
-
-  private checkNotifications() {
-    const { sections } = reminderStore.getState();
-    const allItems = sections.flatMap(s => s.items.map(item => ({ ...item, sectionId: s.id })));
-    const now = new Date();
-    const nowMs = now.getTime();
-
-    // 1. 밤 9시 확인 알림 (21:00)
-    if (now.getHours() === 21 && now.getMinutes() === 0) {
-      const unfinishedItems = allItems.filter(item => !item.done);
-      if (unfinishedItems.length > 0) {
-        const itemNames = unfinishedItems.map(it => it.text).join(', ');
-        this.sendNotification(
-          NOTIFICATION_MESSAGES.NIGHT_CHECK_TITLE, 
-          NOTIFICATION_MESSAGES.NIGHT_CHECK_BODY(itemNames)
-        );
-      }
-    }
-
-    // 2. 개별 리마인더 알림
-    allItems.forEach(item => {
-      if (!item.time || item.done || item.notified) return;
-
-      const itemDate = item.time instanceof Date ? item.time : new Date(item.time);
-      const itemMs = itemDate.getTime();
-
-      // 현재 시간이 설정 시간보다 지났거나 같으면 알림 발송
-      if (nowMs >= itemMs) {
-        this.sendNotification(
-          NOTIFICATION_MESSAGES.INDIVIDUAL_TITLE, 
-          NOTIFICATION_MESSAGES.INDIVIDUAL_BODY(item.text)
-        );
-        reminderStore.markAsNotified(item.sectionId, item.id);
-      }
-    });
-  }
-
-  private sendNotification(title: string, body: string) {
-    if (Notification.permission === 'granted') {
-      const notification = new Notification(title, { 
-        body, 
-        icon: './assets/logo.webp',
-        silent: false,
-        requireInteraction: true 
-      });
-      
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    }
-  }
 
   handleLogout() {
     authStore.logout();
