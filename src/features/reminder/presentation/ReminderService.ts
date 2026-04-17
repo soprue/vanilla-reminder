@@ -10,6 +10,7 @@ import { REMINDER_CONFIG, NOTIFICATION_MESSAGES } from '@src/shared/constants';
 export class ReminderService {
   private static instance: ReminderService;
   private component: any = null;
+  private monitoringTimer: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {}
 
@@ -172,15 +173,28 @@ export class ReminderService {
    * 알림 모니터링 시작
    */
   startMonitoring() {
+    // 이미 모니터링 중이라면 중복 실행 방지
+    if (this.monitoringTimer) return;
+
     // 알림 권한 요청 및 확인
     if (Notification.permission !== 'granted') {
       Notification.requestPermission();
     }
 
     // 1분마다 체크 (실운영 환경)
-    setInterval(() => this.checkNotifications(), 60000);
+    this.monitoringTimer = setInterval(() => this.checkNotifications(), 60000);
     // 시작 시에도 한 번 즉시 체크
     this.checkNotifications();
+  }
+
+  /**
+   * 알림 모니터링 중지
+   */
+  stopMonitoring() {
+    if (this.monitoringTimer) {
+      clearInterval(this.monitoringTimer);
+      this.monitoringTimer = null;
+    }
   }
 
   private checkNotifications() {
@@ -189,8 +203,8 @@ export class ReminderService {
     const now = new Date();
     const nowMs = now.getTime();
 
-    // 1. 밤 9시 확인 알림 (테스트를 위해 오후 1시로 변경)
-    if (now.getHours() === 13 && now.getMinutes() === 0) {
+    // 1. 밤 9시 확인 알림 (21:00)
+    if (now.getHours() === 21 && now.getMinutes() === 0) {
       const unfinishedItems = allItems.filter(item => !item.done);
       if (unfinishedItems.length > 0) {
         const itemNames = unfinishedItems.map(it => it.text).join(', ');
