@@ -6,6 +6,7 @@ import { Router } from '@src/core/Router';
 
 // 아이콘 임포트
 import googleIcon from '@assets/icons/google.svg';
+import logoIcon from '@assets/logo.webp';
 
 export default class LoginPage extends Component<ComponentProps> {
   init() {
@@ -15,7 +16,11 @@ export default class LoginPage extends Component<ComponentProps> {
 
   setEvent() {
     this.addEvent('click', '.login-submit-btn', this.handleLogin.bind(this));
-    this.addEvent('click', '.google-login-btn', this.handleGoogleLogin.bind(this));
+    this.addEvent(
+      'click',
+      '.google-login-btn',
+      this.handleGoogleLogin.bind(this)
+    );
     this.addEvent('click', '.logout-btn', this.handleLogout.bind(this));
     this.addEvent('click', '.go-main-btn', this.handleGoMain.bind(this));
   }
@@ -42,20 +47,17 @@ export default class LoginPage extends Component<ComponentProps> {
     const { isLoggedIn, user } = authStore.getState();
     const { isDarkMode } = themeStore.getState();
 
-
     return jsx`
       <div class="login-wrapper ${isDarkMode ? 'dark-mode' : ''}">
         <div class="login-card">
-          <h1>Vanilla Reminder</h1>
-          <p class="subtitle">매일의 기록을 더 가볍게</p>
+          <img src="${logoIcon}" alt="logo" class="login-logo" />
+          <h1>Tickit</h1>
 
           ${
             isLoggedIn
               ? jsx`
                   <div class="login-form">
-                    <p class="status-msg"><strong>${
-                      user?.name
-                    }</strong>님, 환영합니다! 🎉</p>
+                    <p class="status-msg"><strong>${user?.name}</strong>님, 환영합니다! 🎉</p>
                     <button class="login-button logout-btn">로그아웃</button>
                   </div>
                 `

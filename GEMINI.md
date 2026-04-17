@@ -1,4 +1,4 @@
-# Vanilla Reminder Project Guidelines
+# Tickit Project Guidelines
 
 이 프로젝트는 **Electron**과 **Vanilla TypeScript** 기반의 커스텀 프레임워크를 사용합니다. 
 AI는 작업을 시작하기 전, 아래 규칙 중 현재 작업 범위에 해당하는 상세 지침을 먼저 읽고 준수해야 합니다.

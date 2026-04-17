@@ -1,11 +1,10 @@
 /**
  * 애플리케이션 전반에서 사용되는 상수 정의
  */
-
 export const STORAGE_KEYS = {
-  REMINDER: 'vanilla_reminder_data',
-  THEME: 'vanilla_reminder_theme',
-  AUTH: 'vanilla_reminder_auth',
+  REMINDER: 'tickit_data',
+  THEME: 'tickit_theme',
+  AUTH: 'tickit_auth',
 } as const;
 
 export const DELAYS = {

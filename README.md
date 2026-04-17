@@ -1,6 +1,6 @@
-## 프로젝트 소개
+# Tickit (틱잇)
 
-> Vanilla JavaScript, TypeScript, Electron 기반의 데스크탑 애플리케이션입니다.
+> 체크하고, 관리하는 티켓처럼. Vanilla JavaScript, TypeScript, Electron 기반의 데스크탑 리마인더 애플리케이션입니다.
 
 저는 정해진 루틴대로 생활하고 있으며, 약도 제시간에 챙겨 먹어야 합니다. 하지만 핸드폰을 자주 보지 않아 시간을 놓치는 경우가 많았습니다.  
 이러한 문제를 해결하기 위해 이 애플리케이션을 만들었습니다.  
@@ -20,51 +20,45 @@
 ## 시작 가이드
 
 #### 요구사항
+- Node.js (v18 이상 권장)
+- npm 또는 yarn
 
 #### Installation
 
-```
-// 아직 제작 중입니다......
+```bash
+npm install
+npm run build
+npm start
 ```
 
 <br />
 
 ## 주요 구현 기능
 
-- [x] 컴포넌트 구현: 클래스 컴포넌트와 생명주기 메서드를 사용하여 애플리케이션의 UI 구성 요소를 구현합니다. 이를 통해 React의 생명주기 관리와 상태 관리에 대한 깊은 이해를 목표로 합니다.
-- [x] 라우팅 구현: 클래스를 활용하여 페이지 간의 이동을 처리하는 라우팅 기능을 구현합니다. 이를 통해 SPA (Single Page Application) 라우팅의 기본 원리를 학습합니다.
-- [x] JSX 구현: JSX와 유사한 구문을 직접 구현하여 React의 컴포넌트 렌더링 방식과 유사한 방식으로 UI를 구성합니다.
-- [x] 전역 상태 관리 구현: Observable 패턴 기반의 `Store` 클래스와 컴포넌트 구독(Subscribe) 시스템을 직접 구현하여, 전역 상태 변화에 따른 자동 리렌더링 기능을 지원합니다.
-- [x] 가상 돔 구현: 가상 돔을 사용하여 효율적인 DOM 조작을 구현합니다. 이를 통해 실제 DOM 조작의 비용을 최소화하고 성능을 향상시키는 방법을 학습합니다.
+- [x] **커스텀 프레임워크**: 클래스 컴포넌트와 생명주기 메서드(`init`, `render`, `componentDidUpdate`)를 직접 구현.
+- [x] **라우팅 시스템**: Hash 기반의 SPA 라우터 구현.
+- [x] **JSX 파서**: `jsx` 태그 템플릿 리터럴을 통한 선언적 UI 구조 지원.
+- [x] **전역 상태 관리**: Observable 패턴 기반의 `Store` 시스템으로 상태 변경 시 자동 리렌더링.
+- [x] **데이터 영속성**: Electron IPC를 통한 로컬 파일 시스템 저장 및 복구.
+- [x] **시스템 알림**: 지정된 시간에 맞춰 데스크탑 네이티브 알림 발송.
 
 <br />
 
 ## 기술 스택
 
-[![stackticon](https://firebasestorage.googleapis.com/v0/b/stackticon-81399.appspot.com/o/images%2F1718175676976?alt=media&token=ad75a0ff-7d96-4a64-8e86-58a008493a95)](https://github.com/msdio/stackticon)
+- **Frontend**: Vanilla TypeScript, CSS Modules
+- **Desktop**: Electron
+- **Build**: Webpack, TypeScript Compiler
 
 <br />
 
 ## 🚀 향후 개발 로드맵 (Roadmap)
 
-본 프로젝트는 Nest.js 백엔드 통합 전까지 데스크톱 앱으로서의 완성도를 높이는 데 집중합니다.
+### **1단계: React 마이그레이션 (Planned)**
+- [ ] 현재의 커스텀 프레임워크를 React로 전환
+- [ ] `Store.ts`를 `Zustand` 또는 `Context API`로 교체
+- [ ] `Component.ts` 기반 설계를 함수형 컴포넌트와 Hooks로 전환
 
-### **1단계: 다크모드 스타일링 완성 (UI/UX)**
-
-- [x] `style.css` 내 다크모드(`dark-mode`) 전용 색상 변수 정의
-- [x] 시스템 테마 감지 (`matchMedia`) 및 자동 적용 기능
-
-### **2단계: 데이터 영속성 확보 (Persistence)**
-
-- [x] `localStorage` 또는 `electron-store`를 활용한 상태 자동 저장
-- [x] 앱 재시작 시 리마인더 목록 및 사용자 설정(테마 등) 복구
-
-### **3단계: 검색 및 필터링 기능 (Features)**
-
-- [x] 상단 검색바 UI 추가 및 실시간 리스트 필터링 구현
-- [x] 상태별 필터링 기능 고도화
-
-### **4단계: 네이티브 시스템 알림 (Advanced)**
-
-- [ ] 리마인더별 시간 설정 UI 추가
-- [ ] 지정된 시간에 Electron 네이티브 알림(Notification API) 전송 로직 구현
+### **2단계: 기능 고도화**
+- [ ] 리마인더 반복 설정 (매일, 매주 등)
+- [ ] 카테고리별 컬러 커스터마이징

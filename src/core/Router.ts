@@ -9,7 +9,10 @@ export class Router {
   private currentPage: Component<any, any> | null = null;
 
   private constructor() {
-    window.addEventListener('popstate', this.resolve.bind(this));
+    // Hash 변경 감지
+    window.addEventListener('hashchange', this.resolve.bind(this));
+    // 초기 로드 시 실행
+    window.addEventListener('load', this.resolve.bind(this));
   }
 
   public static getInstance(): Router {
@@ -19,20 +22,19 @@ export class Router {
     return Router.instance;
   }
 
-  add(
+  public add(
     path: string,
     page: new (target: HTMLElement, props: any) => Component<any, any>
   ) {
     this.routes[path] = page as any;
   }
 
-  resolve() {
-    let { pathname } = window.location;
-    // Electron 파일 모드일 경우 /index.html 등이 포함될 수 있으므로 정규화
-    if (pathname.endsWith('index.html')) pathname = '/';
-
-    console.log('[Router] Current Path:', pathname);
-    const route = this.routes[pathname] || this.routes['/'];
+  public resolve() {
+    // #/login -> /login 형식으로 추출
+    let hash = window.location.hash.replace(/^#/, '') || '/';
+    
+    console.log('[Router] Current Hash Path:', hash);
+    const route = this.routes[hash] || this.routes['/'];
 
     if (route) {
       const target = document.getElementById('root');
@@ -42,16 +44,16 @@ export class Router {
           this.currentPage.unmount();
         }
 
-        // 2. 새 페이지 생성 (생성자 내부에서 mount/render가 이미 호출됨)
+        // 2. 새 페이지 생성
         this.currentPage = new route(target, {});
       }
     } else {
-      console.error('[Router] Route not found for:', pathname);
+      console.error('[Router] Route not found for:', hash);
     }
   }
 
-  navigate(path: string) {
-    window.history.pushState({}, path, window.location.origin + path);
-    this.resolve();
+  public navigate(path: string) {
+    // 해시를 변경하면 hashchange 이벤트가 발생하여 resolve가 실행됨
+    window.location.hash = path;
   }
 }
