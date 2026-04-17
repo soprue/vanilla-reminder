@@ -243,7 +243,39 @@ export class ReminderService {
 
   toggleTimePopover() {
     if (!this.component) return;
-    this.component.setState({ showTimePopover: !this.component.state.showTimePopover });
+    const isOpening = !this.component.state.showTimePopover;
+
+    if (isOpening) {
+      const { selectedTime, isAllDay } = this.component.state;
+      let ampm: 'AM' | 'PM' = REMINDER_CONFIG.DEFAULT_AMPM;
+      let hour: string = REMINDER_CONFIG.DEFAULT_HOUR;
+      let minute: string = REMINDER_CONFIG.DEFAULT_MINUTE;
+
+      // 이미 설정된 시간이 있다면 그 시간으로 피커 초기화
+      const timeDate = selectedTime instanceof Date ? selectedTime : (selectedTime ? new Date(selectedTime) : null);
+      
+      if (timeDate && !isNaN(timeDate.getTime()) && !isAllDay) {
+        const h = timeDate.getHours();
+        const m = timeDate.getMinutes();
+        ampm = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h % 12 || 12;
+        hour = String(displayHour).padStart(2, '0');
+        minute = String(m).padStart(2, '0');
+        
+        // 5분 단위 피커인 경우 가장 가까운 값으로 반올림 (선택 사항)
+        const roundedMinute = Math.round(m / 5) * 5;
+        minute = String(roundedMinute >= 60 ? 55 : roundedMinute).padStart(2, '0');
+      }
+
+      this.component.setState({ 
+        showTimePopover: true,
+        pickerAMPM: ampm,
+        pickerHour: hour,
+        pickerMinute: minute
+      });
+    } else {
+      this.component.setState({ showTimePopover: false });
+    }
   }
 
   updatePickerTime(key: 'pickerAMPM' | 'pickerHour' | 'pickerMinute', value: string) {
