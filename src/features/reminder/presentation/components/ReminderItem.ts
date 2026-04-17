@@ -76,6 +76,9 @@ const EditMode = (props: ReminderItemProps) => {
   };
 
   const onBlur = (e: FocusEvent) => {
+    // 팝오버가 열려 있는 동안은 바깥 클릭으로 간주하지 않음 (편집 모드 유지)
+    if (showTimePopover) return;
+
     const container = (e.target as HTMLElement).closest('.input-area-wrapper');
     if (container && container.contains(e.relatedTarget as Node)) return;
     

@@ -189,8 +189,8 @@ export class ReminderService {
     const now = new Date();
     const nowMs = now.getTime();
 
-    // 1. 밤 9시 확인 알림 (21:00)
-    if (now.getHours() === 21 && now.getMinutes() === 0) {
+    // 1. 밤 9시 확인 알림 (테스트를 위해 오후 1시로 변경)
+    if (now.getHours() === 13 && now.getMinutes() === 0) {
       const unfinishedItems = allItems.filter(item => !item.done);
       if (unfinishedItems.length > 0) {
         const itemNames = unfinishedItems.map(it => it.text).join(', ');
@@ -296,7 +296,8 @@ export class ReminderService {
     this.component.setState({ 
       [key]: value,
       selectedTime: date,
-      isAllDay: false
+      isAllDay: false,
+      showTimePopover: false
     } as any);
   }
 
