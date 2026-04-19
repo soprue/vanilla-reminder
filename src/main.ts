@@ -1,15 +1,13 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
-import url from "url";
-import { fileURLToPath } from "url";
 import isDev from "electron-is-dev";
 import fs from "fs";
 
-// ES 모듈 환경에서 __dirname을 정확하게 구하는 방법
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// 앱의 루트 경로를 구합니다.
+// 개발 시: 프로젝트 루트
+// 패키징 시: app.asar 경로
+const APP_PATH = app.getAppPath();
 
-// 데이터 디렉토리 설정 (dist 폴더 밖으로 나가서 찾음)
 const DATA_DIR = path.join(app.getPath("userData"), "data");
 
 if (!fs.existsSync(DATA_DIR)) {
@@ -49,14 +47,9 @@ ipcMain.handle("reminder:get-all", async (event, key) => {
 function createWindow() {
   const isMac = process.platform === "darwin";
   
-  // 빌드 후 main.js는 dist 폴더 안에 위치하므로, 
-  // 상위 폴더나 에셋 경로를 유연하게 잡아야 합니다.
-  const assetsPath = app.isPackaged 
-    ? path.join(__dirname, "..", "src", "assets") // 패키징 시
-    : path.join(__dirname, "..", "src", "assets"); // 개발 시 (tsc 결과가 dist에 있으므로)
-
+  // 에셋 경로 설정
   const iconFileName = isMac ? "logo.icns" : "logo.ico";
-  const iconPath = path.join(assetsPath, iconFileName);
+  const iconPath = path.join(APP_PATH, "src", "assets", iconFileName);
 
   const image = nativeImage.createFromPath(iconPath);
 
@@ -73,16 +66,16 @@ function createWindow() {
     useContentSize: true,
     icon: image,
     webPreferences: {
-      // main.js(dist 안) 기준으로 preload.cjs(루트) 위치 지정
-      preload: path.join(__dirname, "..", "preload.cjs"),
+      // APP_PATH를 기준으로 preload.cjs 위치를 잡습니다.
+      preload: path.join(APP_PATH, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
     },
   });
 
-  // index.html 위치 (main.js가 dist 안에 있으므로 같은 폴더)
-  const indexPath = path.join(__dirname, "index.html");
+  // index.html 위치 (APP_PATH/dist/index.html)
+  const indexPath = path.join(APP_PATH, "dist", "index.html");
 
   if (isDev && !process.env.ELECTRON_RUN_AS_NODE) {
     const devUrl = "http://localhost:9000";
