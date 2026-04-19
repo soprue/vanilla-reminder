@@ -38,6 +38,10 @@
 ### 설치 파일 다운로드
 [Releases](https://github.com/soprue/vanilla-reminder/releases) 페이지에서 자신의 OS(macOS, Windows)에 맞는 설치 파일을 내려받아 즉시 사용할 수 있습니다.
 
+> **⚠️ macOS 사용자 주의사항**  
+> Apple에 등록되지 않은 개발자의 앱이므로 실행 시 "손상되었기 때문에 열 수 없습니다"라는 메시지가 뜰 수 있습니다. 이 경우 앱을 **응용 프로그램** 폴더로 옮긴 후, 터미널에서 아래 명령어를 입력하면 정상적으로 실행됩니다:  
+> \`sudo xattr -rd com.apple.quarantine /Applications/Tickit.app\`
+
 ### 개발 환경 실행
 ```bash
 # 저장소 복제
