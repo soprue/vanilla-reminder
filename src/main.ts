@@ -1,11 +1,8 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
-import isDev from "electron-is-dev";
 import fs from "fs";
 
 // 앱의 루트 경로를 구합니다.
-// 개발 시: 프로젝트 루트
-// 패키징 시: app.asar 경로
 const APP_PATH = app.getAppPath();
 
 const DATA_DIR = path.join(app.getPath("userData"), "data");
@@ -66,7 +63,6 @@ function createWindow() {
     useContentSize: true,
     icon: image,
     webPreferences: {
-      // APP_PATH를 기준으로 preload.cjs 위치를 잡습니다.
       preload: path.join(APP_PATH, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
@@ -74,10 +70,10 @@ function createWindow() {
     },
   });
 
-  // index.html 위치 (APP_PATH/dist/index.html)
   const indexPath = path.join(APP_PATH, "dist", "index.html");
 
-  if (isDev && !process.env.ELECTRON_RUN_AS_NODE) {
+  // electron-is-dev 대신 app.isPackaged 사용
+  if (!app.isPackaged) {
     const devUrl = "http://localhost:9000";
     mainWindow.loadURL(devUrl).catch(() => {
       mainWindow.loadFile(indexPath);

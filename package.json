@@ -55,7 +55,6 @@
     "css-loader": "^7.1.4",
     "electron": "^41.0.0",
     "electron-builder": "^25.1.8",
-    "electron-is-dev": "^3.0.1",
     "electron-reload": "^2.0.0-alpha.1",
     "html-webpack-plugin": "^5.6.6",
     "style-loader": "^4.0.0",
