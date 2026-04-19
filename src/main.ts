@@ -1,21 +1,23 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
 import url from "url";
+import { fileURLToPath } from "url";
 import isDev from "electron-is-dev";
 import fs from "fs";
 
-const __dirname = path.resolve();
+// ES 모듈 환경에서 __dirname을 정확하게 구하는 방법
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 데이터 디렉토리 설정 (dist 폴더 밖으로 나가서 찾음)
 const DATA_DIR = path.join(app.getPath("userData"), "data");
 
-// 데이터 디렉토리 생성
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// 진행 중인 저장 작업 수 (안전 종료용)
 let pendingSaves = 0;
 
-// IPC 핸들러 등록
 ipcMain.handle("reminder:save", async (event, { key, data }) => {
   pendingSaves++;
   const filePath = path.join(DATA_DIR, `${key}.json`);
@@ -46,8 +48,15 @@ ipcMain.handle("reminder:get-all", async (event, key) => {
 
 function createWindow() {
   const isMac = process.platform === "darwin";
+  
+  // 빌드 후 main.js는 dist 폴더 안에 위치하므로, 
+  // 상위 폴더나 에셋 경로를 유연하게 잡아야 합니다.
+  const assetsPath = app.isPackaged 
+    ? path.join(__dirname, "..", "src", "assets") // 패키징 시
+    : path.join(__dirname, "..", "src", "assets"); // 개발 시 (tsc 결과가 dist에 있으므로)
+
   const iconFileName = isMac ? "logo.icns" : "logo.ico";
-  const iconPath = path.join(__dirname, "src/assets", iconFileName);
+  const iconPath = path.join(assetsPath, iconFileName);
 
   const image = nativeImage.createFromPath(iconPath);
 
@@ -64,32 +73,27 @@ function createWindow() {
     useContentSize: true,
     icon: image,
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
+      // main.js(dist 안) 기준으로 preload.cjs(루트) 위치 지정
+      preload: path.join(__dirname, "..", "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
     },
   });
 
-  // 로컬 인덱스 파일 경로 (빌드 결과물 위치)
-  const indexPath = path.join(__dirname, "dist", "index.html");
+  // index.html 위치 (main.js가 dist 안에 있으므로 같은 폴더)
+  const indexPath = path.join(__dirname, "index.html");
 
   if (isDev && !process.env.ELECTRON_RUN_AS_NODE) {
-    // 개발 모드이고 서버가 켜져 있을 것으로 예상될 때
     const devUrl = "http://localhost:9000";
-    
     mainWindow.loadURL(devUrl).catch(() => {
-      console.log("개발 서버를 찾을 수 없어 로컬 파일을 로드합니다.");
       mainWindow.loadFile(indexPath);
     });
-    
     mainWindow.webContents.openDevTools();
   } else {
-    // 배포 모드이거나 서버가 없을 때
     mainWindow.loadFile(indexPath);
   }
 
-  // [안전 종료 로직]
   mainWindow.on("close", (e) => {
     if (pendingSaves > 0) {
       e.preventDefault();
